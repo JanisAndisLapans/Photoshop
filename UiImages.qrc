@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>move.png</file>
+        <file>resources/circleCursor.png</file>
+        <file>resources/magnify.png</file>
+        <file>resources/paintbrush.png</file>
+    </qresource>
+</RCC>
