@@ -1,34 +1,40 @@
 #include "brushtool.h"
 #include "editframe.h"
 
-BrushTool::BrushTool(EditFrame *editFrame, const shared_ptr<BrushShape>& brushShape)
-    :EditTool(editFrame), brushShape(brushShape)
+BrushTool::BrushTool(EditFrame *editFrame, const unique_ptr<BrushShape>* brush)
+    :EditTool(editFrame), brushShape(brush)
 {
+
 }
 
-void draw(Layer& l, const QPoint& currPos, const BrushShape& brushShape, EditFrame *editFrame)
+bool BrushTool::draw(Layer& l, const QPoint& currPos)
 {
-    auto img = brushShape.getImg();
-    auto brushRectOnDisplay = img.rect();
+    auto brushImg = (*brushShape)->getImg();
+    auto brushRectOnDisplay = brushImg.rect();
+    auto resizedRect = l;
+    resizedRect.setSize(resizedRect.size()*editFrame->getZoom());
     brushRectOnDisplay.translate(currPos);
-    if(!brushRectOnDisplay.intersects(l)) return;
-    auto imgRef = l.getImgRef();
-    auto brushRect = img.rect();
-    brushRect.translate(currPos/editFrame->getZoom()-l.getPos());
-    QPainter painter(imgRef);
-    painter.drawImage(brushRect, img);
+    if(!brushRectOnDisplay.intersects(resizedRect)) return false;
+    auto brushImgRef = l.getImgRef();
+    auto brushRect = brushImg.rect();
+    auto translateAmount = -l.getPos();
+    auto preciseXTranslate = static_cast<int>(static_cast<double>(currPos.x())/editFrame->getZoom()),
+         preciseYTranslate = static_cast<int>(static_cast<double>(currPos.y())/editFrame->getZoom());
+    translateAmount += QPoint(preciseXTranslate, preciseYTranslate);
+    brushRect.translate(translateAmount);
+    QPainter painter(brushImgRef);
+    painter.drawImage(brushRect, brushImg);
+    return true;
 }
 
 void BrushTool::onDownMouse(QMouseEvent *eventPress, QVector<Layer>& layers)
 {
     mouseDown = true;
     auto currPos = eventPress->pos();
-    for(Layer& l : layers)
+    for(auto riter = layers.rbegin(); riter!=layers.rend(); riter++)
     {
-        if(l.isSelected())
-        {
-            draw(l, currPos, *brushShape, editFrame);
-        }
+        auto& l = *riter;
+        if(draw(l, currPos)) break;
     }
     editFrame->update();
 }
@@ -36,17 +42,13 @@ void BrushTool::onDownMouse(QMouseEvent *eventPress, QVector<Layer>& layers)
 void BrushTool::onMoveMouse(QMouseEvent *eventMove, QVector<Layer>& layers)
 {
     if(!mouseDown) return;
-    auto start = chrono::steady_clock::now();
     auto currPos = eventMove->pos();
-    for(Layer& l : layers)
+    for(auto riter = layers.rbegin(); riter!=layers.rend(); riter++)
     {
-        if(l.isSelected())
-        {
-            draw(l, currPos, *brushShape, editFrame);
-        }
+        auto& l = *riter;
+        if(draw(l, currPos)) break;
     }
     editFrame->update();
-    auto elapsed = chrono::steady_clock::now() - start;
 }
 
 void BrushTool::onReleaseMouse(QMouseEvent *releaseEvent)

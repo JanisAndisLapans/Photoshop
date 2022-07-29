@@ -6,19 +6,20 @@
 #include "movetool.h"
 #include "brushtool.h"
 #include "brushshape.h"
-#include "brushcircle.h"
 #include "brushsquare.h"
 #include "brushfadedcircle.h"
+#include "brushcircle.h"
 
 #include <memory>
 #include <cmath>
+#include <algorithm>
 
 #include <QFrame>
 #include <QPainter>
-#include <algorithm>
 #include <QCursor>
 #include <QHoverEvent>
 #include <QException>
+
 
 using namespace std;
 
@@ -42,7 +43,7 @@ public:
     double getZoom() const;
     void setBrushColor(const QColor& color);
     void setBrushShape(BrushType type);
-
+    QVector<Layer>* getLayersRef();
 
 protected:
     bool event(QEvent *event);
@@ -58,11 +59,11 @@ private:
      QPoint lastMouse;
      unique_ptr<EditTool> editTool;
      double zoom = 1.0;
-     shared_ptr<BrushShape> brushShape = make_shared<BrushSquare>(15,Qt::green);
-     QCursor brushCursor;   
+     unique_ptr<BrushShape> brushShape = make_unique<BrushSquare>(15,Qt::green);
+     QCursor brushCursor;
 
      void changeZoomBy(double amount);
-     void adjustBrushCursor();     
+     void adjustBrushCursor();
 };
 
 #endif // EDITFRAME_H

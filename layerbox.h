@@ -3,17 +3,21 @@
 
 #include "layer.h"
 
+#include <memory>
+
 #include <QBoxLayout>
 #include <QLabel>
 #include <QPixmap>
 
-class LayerBox : public QBoxLayout
+using namespace std;
+
+class LayerBox : public QWidget
 {
 public:
-    LayerBox(Layer* layer, QWidget *parent = nullptr);
+    LayerBox(const Layer& layer, QWidget *parent = nullptr);
 private:
     QLabel *name, *image;
-    Layer *layer;
+    const Layer& layer;
 };
 
 #endif // LAYERBOX_H

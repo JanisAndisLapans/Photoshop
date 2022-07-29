@@ -225,11 +225,44 @@ QStatusBar{
        </widget>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="rightToolsLayout">
+       <layout class="QVBoxLayout" name="rightToolsLayout" stretch="50">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
+         <layout class="QVBoxLayout" name="verticalLayout" stretch="50,50">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QScrollArea" name="scrollArea_3">
+              <property name="widgetResizable">
+               <bool>true</bool>
+              </property>
+              <widget class="QWidget" name="scrollAreaWidgetContents_4">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>240</width>
+                 <height>367</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_7">
+                <item>
+                 <widget class="QFrame" name="frame">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
              <widget class="QScrollArea" name="scrollArea_2">
               <property name="widgetResizable">
@@ -241,74 +274,44 @@ QStatusBar{
                  <x>0</x>
                  <y>0</y>
                  <width>240</width>
-                 <height>736</height>
+                 <height>367</height>
                 </rect>
                </property>
-               <widget class="QScrollArea" name="layerArea">
-                <property name="geometry">
-                 <rect>
-                  <x>0</x>
-                  <y>410</y>
-                  <width>245</width>
-                  <height>390</height>
-                 </rect>
-                </property>
-                <property name="widgetResizable">
-                 <bool>true</bool>
-                </property>
-                <widget class="QWidget" name="scrollAreaWidgetContents_3">
-                 <property name="geometry">
-                  <rect>
-                   <x>0</x>
-                   <y>0</y>
-                   <width>243</width>
-                   <height>388</height>
-                  </rect>
-                 </property>
-                 <widget class="QWidget" name="horizontalLayoutWidget">
-                  <property name="geometry">
-                   <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>241</width>
-                    <height>91</height>
-                   </rect>
+               <layout class="QVBoxLayout" name="verticalLayout_6">
+                <item>
+                 <widget class="QScrollArea" name="layerArea">
+                  <property name="widgetResizable">
+                   <bool>true</bool>
                   </property>
-                  <layout class="QHBoxLayout" name="horizontalLayout_2">
-                   <item>
-                    <widget class="QLabel" name="label">
-                     <property name="text">
-                      <string>TextLabel</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="pushButton_2">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string>PushButton</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
+                  <widget class="QWidget" name="scrollAreaWidgetContents_3">
+                   <property name="geometry">
+                    <rect>
+                     <x>0</x>
+                     <y>0</y>
+                     <width>216</width>
+                     <height>343</height>
+                    </rect>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_2">
+                    <item>
+                     <widget class="LayerFrame" name="layerFrame">
+                      <property name="frameShape">
+                       <enum>QFrame::StyledPanel</enum>
+                      </property>
+                      <property name="frameShadow">
+                       <enum>QFrame::Raised</enum>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
                  </widget>
-                </widget>
-               </widget>
+                </item>
+               </layout>
               </widget>
              </widget>
             </item>
            </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_3"/>
           </item>
          </layout>
         </item>
@@ -359,6 +362,12 @@ QStatusBar{
    <class>EditFrame</class>
    <extends>QWidget</extends>
    <header>editframe.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LayerFrame</class>
+   <extends>QFrame</extends>
+   <header location="global">layerframe.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -22,7 +22,6 @@ set(PROJECT_SOURCES
         editframe.cpp
         layer.cpp
         UiImages.qrc
-        layerbox.cpp
         edittool.cpp
         movetool.cpp
         brushtool.cpp
@@ -30,6 +29,8 @@ set(PROJECT_SOURCES
         brushcircle.cpp
         brushsquare.cpp
         brushfadedcircle.cpp
+        selecttool.cpp
+        layerframe.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

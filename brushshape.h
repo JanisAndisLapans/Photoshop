@@ -17,7 +17,7 @@ public:
     void changeSource(QColor newColor);
     QImage getImg() const;
     QColor getColor() const;
-    QImage getSrcImg() const;
+    const QImage* getSrcImg() const;
     bool isColorSrc() const;
     int getSize() const;
 
@@ -25,7 +25,8 @@ protected:
     virtual void initialize(const QColor& color);
     QImage img;
     int size;
-    QImage sourceImg;
+    QImage *srcImg;
+    QPoint srcImgPos;
     QColor sourceColor;
     bool isColor;
 };

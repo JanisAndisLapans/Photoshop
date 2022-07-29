@@ -9,7 +9,7 @@
 class BrushCircle : public BrushShape
 {
 public:
-    BrushCircle(int size, QColor solidColor);
+    BrushCircle(int size, const QColor& solidColor);
 protected:
     virtual void initialize(const QColor& color);
 };

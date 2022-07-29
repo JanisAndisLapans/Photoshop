@@ -7,28 +7,32 @@ MoveTool::MoveTool(EditFrame *editFrame)
 
 }
 
-void MoveTool::onDownMouse(QMouseEvent *eventPress)
+void MoveTool::onDownMouse(QMouseEvent *eventPress, QVector<Layer>& layers)
 {
     mouseDown = true;
     startMouse = eventPress->pos();
+    for(auto riter = layers.rbegin(); riter!=layers.rend(); riter++)
+    {
+        auto& layer = *riter;
+        auto rect = QRect(layer);
+        rect.setSize(rect.size() * editFrame->getZoom());
+        if(rect.contains(eventPress->pos()))
+        {
+            currMoving = &layer;
+            break;
+        }
+    }
 }
 
-void MoveTool::onMoveMouse(QMouseEvent *eventMove, QVector<Layer>& layers)
+void MoveTool::onMoveMouse(QMouseEvent *eventMove)
 {
-        if(!mouseDown) return;
+        if(!mouseDown || currMoving == nullptr) return;
         auto dif = eventMove->pos() - startMouse;
         startMouse = eventMove->pos();
-
-        for(Layer& l : layers)
-        {
-            if(l.isSelected())
-            {
-                auto newPos = l.getPos() + dif;
-                newPos.setX(max(newPos.x(),0));
-                newPos.setY(max(newPos.y(),0));
-                l.setPos(newPos);
-            }
-        }
+        auto newPos = currMoving->getPos() + dif;
+        newPos.setX(max(newPos.x(),0));
+        newPos.setY(max(newPos.y(),0));
+        currMoving->setPos(newPos);
         editFrame->adjustSize();
         editFrame->update();
 }
@@ -48,13 +52,13 @@ void MoveTool::rerouteEvent(QEvent *event, QVector<Layer>& layers)
     switch(event->type())
     {
         case QEvent::MouseButtonPress:
-            onDownMouse(static_cast<QMouseEvent*>(event));
+            onDownMouse(static_cast<QMouseEvent*>(event), layers);
             break;
         case QEvent::MouseButtonRelease:
             onReleaseMouse(static_cast<QMouseEvent*>(event));
             break;
         case QEvent::MouseMove:
-            onMoveMouse(static_cast<QMouseEvent*>(event), layers);
+            onMoveMouse(static_cast<QMouseEvent*>(event));
             break;
         case QEvent::HoverLeave:
             onLeaveMouse(static_cast<QHoverEvent*>(event));

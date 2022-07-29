@@ -1,11 +1,13 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->layerFrame->setEditFrame(ui->editFrame);
 }
 
 MainWindow::~MainWindow()
@@ -20,6 +22,7 @@ void MainWindow::on_actionOpen_triggered()
 
     ui->editFrame->setImg(fileName);
     ui->editFrame->update();
+    ui->layerFrame->update();
 }
 
 

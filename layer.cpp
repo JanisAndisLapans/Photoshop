@@ -6,12 +6,14 @@ Layer::Layer(const QPoint& pos)
 
 }
 
-Layer::Layer(const QString& path, const QPoint& pos)
-    :img(new QImage(path))
+Layer::Layer(const QString& path, int rank, const QPoint& pos)
+    :img(new QImage(path)), rank(rank)
 {
+    *img = img->convertToFormat(QImage::Format_ARGB32);
     setSize(img->size());
     setPos(pos);
-    name = QFile(path).fileName();
+    auto fileNameFull = QFile(path).fileName();
+    name = fileNameFull.mid(fileNameFull.lastIndexOf("/")+1);
 }
 
 QPoint Layer::getPos() const
@@ -29,16 +31,6 @@ QString Layer::getName() const
     return name;
 }
 
-bool Layer::isSelected() const
-{
-    return selected;
-}
-
-void Layer::toggleSelected()
-{
-    this->selected = !this->selected;
-}
-
 QImage* Layer::getImgRef()
 {
     return img;
@@ -49,4 +41,12 @@ QImage Layer::getImg() const
     return *img;
 }
 
+int Layer::getRank() const
+{
+    return rank;
+}
 
+void Layer::setRank(int rank)
+{
+    this->rank = rank;
+}

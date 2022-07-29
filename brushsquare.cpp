@@ -7,7 +7,7 @@ void BrushSquare::initialize(const QColor& color)
     img.fill(color);
 }
 
-BrushSquare::BrushSquare(int size, QColor solidColor)
+BrushSquare::BrushSquare(int size, const QColor& solidColor)
     : BrushShape(size, solidColor)
 {
     initialize(solidColor);

@@ -11,7 +11,7 @@ void BrushCircle::initialize(const QColor& color)
     painter.drawEllipse(QRect(0,0,size,size));
 }
 
-BrushCircle::BrushCircle(int size, QColor solidColor)
+BrushCircle::BrushCircle(int size, const QColor& solidColor)
     : BrushShape(size, solidColor)
 {
     initialize(solidColor);

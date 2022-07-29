@@ -3,7 +3,11 @@
 
 #include "layer.h"
 
+#include <vector>
+
 #include <QEvent>
+
+using namespace std;
 
 class EditFrame;
 

@@ -1,5 +1,5 @@
-#ifndef MOVETOOL_H
-#define MOVETOOL_H
+#ifndef SELECTTOOL_H
+#define SELECTTOOL_H
 
 #include "edittool.h"
 
@@ -8,19 +8,18 @@
 #include <QHoverEvent>
 #include <QPoint>
 
-class MoveTool : public EditTool
+class SelectTool : public EditTool
 {
 public:
-    MoveTool(EditFrame *editFrame);
+    SelectTool();
     virtual void rerouteEvent(QEvent *event, QVector<Layer>& layers) override;
 private:
     void onReleaseMouse(QMouseEvent *event);
-    void onDownMouse(QMouseEvent *event, QVector<Layer>& layers);
-    void onMoveMouse(QMouseEvent *event);
+    void onDownMouse(QMouseEvent *event);
+    void onMoveMouse(QMouseEvent *event, QVector<Layer>& layers);
     void onLeaveMouse(QHoverEvent *event);
     bool mouseDown = false;
     QPoint startMouse;
-    Layer* currMoving = nullptr;
 };
 
-#endif // MOVETOOL_H
+#endif // SELECTTOOL_H

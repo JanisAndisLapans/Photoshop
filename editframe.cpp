@@ -11,11 +11,11 @@ EditFrame::EditFrame(QWidget *parent)
 void EditFrame::adjustSize()
 {
     auto maxX = -1, maxY = -1;
-    for(const Layer& l : layers)
+    for(const auto& l : layers)
     {
         auto pos = l.getPos();
-        auto xr = pos.x() + l.width();
-        auto yr = pos.y() + l.height();
+        auto xr = static_cast<int>(pos.x() + l.width()*zoom);
+        auto yr = static_cast<int>(pos.y() + l.height()*zoom);
 
         maxX = max(maxX, xr);
         maxY = max(maxY, yr);
@@ -27,7 +27,7 @@ void EditFrame::adjustSize()
 
 void EditFrame::setImg(QString path)
 {
-    layers.append(Layer(path));
+    layers.append(Layer(path, layers.size()));
     adjustSize();
 }
 
@@ -45,15 +45,8 @@ void EditFrame::setBrushColor(const QColor& color)
 
 void EditFrame::adjustBrushCursor()
 {
-    const auto sourceImg = brushShape->getImg();
-    auto image = QPixmap(sourceImg.size()*(zoom*2.11));
-    image.fill(Qt::transparent);
-    QPainter painter(&image);
-    painter.setPen(Qt::transparent);
-    auto brushAdjustedToCorner = sourceImg.rect();
-    brushAdjustedToCorner.translate(brushAdjustedToCorner.bottomRight()*(zoom*1.11));
-    painter.drawImage(brushAdjustedToCorner, sourceImg);
-    brushCursor = QCursor(image);
+    auto img = brushShape->getImg();
+    brushCursor = QCursor(QPixmap::fromImage(img), 0, 0);
     if(tool == Brush)
     {
         setCursor(brushCursor);
@@ -67,22 +60,21 @@ void EditFrame::setBrushShape(BrushType type)
     {
         case Square:
             if(brushShape->isColorSrc())
-                *brushShape = BrushSquare(brushShape->getSize(), brushShape->getColor());
+                brushShape = make_unique<BrushSquare>(brushShape->getSize(), brushShape->getColor());
             //else
                // brushShape = make_shared<BrushSquare>(brushShape->getSize(), brushShape->getSrcImg());
             break;
 
         case Circle:
-            qDebug() <<"123";
             if(brushShape->isColorSrc())
-                *brushShape = BrushCircle(brushShape->getSize(), brushShape->getColor());
+                brushShape = make_unique<BrushCircle>(brushShape->getSize(), brushShape->getColor());
             //else
                // brushShape = make_shared<BrushCircle>(brushShape->getSize(), brushShape->getSrcImg());
             break;
 
         case FadedCircle:
             if(brushShape->isColorSrc())
-                *brushShape = BrushFadedCircle(brushShape->getSize(), brushShape->getColor());
+                brushShape = make_unique<BrushFadedCircle>(brushShape->getSize(), brushShape->getColor());
             //else
                // brushShape = make_shared<BrushFadedCircle>(brushShape->getSize(), brushShape->getSrcImg());
             break;
@@ -105,7 +97,7 @@ void EditFrame::setTool(Tools tool)
             break;
         case Brush:
             setCursor(brushCursor);
-            editTool = make_unique<BrushTool>(this, brushShape);
+            editTool = make_unique<BrushTool>(this, &brushShape);
             break;
         case Resize:
             setCursor(Qt::SizeBDiagCursor);
@@ -114,16 +106,6 @@ void EditFrame::setTool(Tools tool)
     }
 
 }
-
-void EditFrame::paintEvent(QPaintEvent *event)
-{
-    QPainter painter(this);
-    for(const Layer& l : layers)
-    {
-        painter.drawImage(l,l.getImg());
-    }
-}
-
 
 bool EditFrame::event(QEvent *event)
 {
@@ -140,14 +122,20 @@ double EditFrame::getZoom() const
     return zoom;
 }
 
+void EditFrame::paintEvent(QPaintEvent *event)
+{
+    QPainter painter(this);
+    for(const auto& l : layers)
+    {
+        auto resizedLayer = l;
+        resizedLayer.setSize(resizedLayer.size()*zoom);
+        painter.drawImage(resizedLayer,l.getImg());
+    }
+}
+
 void EditFrame::changeZoomBy(double amount)
 {
     zoom += amount;
-    for(Layer& l : layers)
-    {
-        auto newDims = l.getImgRef()->size()*zoom;
-        l.setSize(newDims);
-    }
     update();
     adjustSize();
     adjustBrushCursor();
@@ -182,4 +170,9 @@ void EditFrame::mouseReleaseEvent(QMouseEvent *event)
     {
         mouseDown = false;
     }
+}
+
+QVector<Layer>* EditFrame::getLayersRef()
+{
+    return &layers;
 }

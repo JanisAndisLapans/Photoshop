@@ -3,11 +3,12 @@
 
 #include "brushshape.h"
 #include <QColor>
+#include <QDebug>
 
 class BrushSquare : public BrushShape
 {
 public:
-    BrushSquare(int size, QColor solidColor);
+    BrushSquare(int size, const QColor& solidColor);
 protected:
     virtual void initialize(const QColor& color);
 };
