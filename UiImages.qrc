@@ -4,5 +4,6 @@
         <file>resources/circleCursor.png</file>
         <file>resources/magnify.png</file>
         <file>resources/paintbrush.png</file>
+        <file>resources/selection.png</file>
     </qresource>
 </RCC>

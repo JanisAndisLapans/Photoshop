@@ -33,13 +33,14 @@ void MoveTool::onMoveMouse(QMouseEvent *eventMove)
         newPos.setX(max(newPos.x(),0));
         newPos.setY(max(newPos.y(),0));
         currMoving->setPos(newPos);
-        editFrame->adjustSize();
+        editFrame->adjustSize(true);
         editFrame->update();
 }
 
 void MoveTool::onReleaseMouse(QMouseEvent *releaseEvent)
 {
     mouseDown = false;
+    editFrame->adjustSize();
 }
 
 void MoveTool::onLeaveMouse(QHoverEvent *hoverEvent)

@@ -9,6 +9,8 @@
 #include "brushsquare.h"
 #include "brushfadedcircle.h"
 #include "brushcircle.h"
+#include "selectedarea.h"
+#include "selecttool.h"
 
 #include <memory>
 #include <cmath>
@@ -19,6 +21,8 @@
 #include <QCursor>
 #include <QHoverEvent>
 #include <QException>
+#include <QTimer>
+#include <QKeyEvent>
 
 
 using namespace std;
@@ -27,7 +31,7 @@ class EditFrame : public QFrame
 {
 public:
     enum Tools{
-        Cursor, Move, Resize, Brush
+        Cursor, Move, Resize, Brush, Selection
     };
 
     enum BrushType{
@@ -38,12 +42,15 @@ public:
     void setImg(QString path);
     virtual void paintEvent(QPaintEvent * event);
     void setTool(Tools tool);
-    void adjustSize();
+    void adjustSize(bool quick=false);
     void setBrushSize(int size);
     double getZoom() const;
     void setBrushColor(const QColor& color);
     void setBrushShape(BrushType type);
     QVector<Layer>* getLayersRef();
+    SelectedArea* getSelectedAreaRef();
+    bool hasSelectedArea() const;
+    bool isSpecialTool() const;
 
 protected:
     bool event(QEvent *event);
@@ -61,9 +68,16 @@ private:
      double zoom = 1.0;
      unique_ptr<BrushShape> brushShape = make_unique<BrushSquare>(15,Qt::green);
      QCursor brushCursor;
+     QCursor selectionSubCursor;
+     QCursor selectionAddCursor;
+     SelectedArea selectedArea;
+     bool selectedAreaDisplayState = false;
+     bool toolSpecial = false;
 
-     void changeZoomBy(double amount);
      void adjustBrushCursor();
-};
+private slots:
+     void selectionDisplaySwitch();
+
+    };
 
 #endif // EDITFRAME_H

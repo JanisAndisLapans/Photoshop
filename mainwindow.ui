@@ -149,6 +149,25 @@ QStatusBar{
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="selectionButton">
+          <property name="toolTip">
+           <string>free selection tool</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	border-image : url(:/icons/resources/selection.png) 0 0 0 0 stretch stretch;
+	background: rgb(206, 206, 206);
+	border-radius: 10px;
+	padding:5px;
+}
+</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="brushButton">
           <property name="toolTip">
            <string>Brush</string>
@@ -201,26 +220,16 @@ QStatusBar{
            <height>751</height>
           </rect>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <property name="spacing">
-           <number>0</number>
+         <widget class="EditFrame" name="editFrame" native="true">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>954</width>
+            <height>751</height>
+           </rect>
           </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="EditFrame" name="editFrame" native="true"/>
-          </item>
-         </layout>
+         </widget>
         </widget>
        </widget>
       </item>

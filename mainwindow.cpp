@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->layerFrame->setEditFrame(ui->editFrame);
+    ui->menubar->setFocusProxy(ui->editFrame);
 }
 
 MainWindow::~MainWindow()
@@ -23,26 +24,36 @@ void MainWindow::on_actionOpen_triggered()
     ui->editFrame->setImg(fileName);
     ui->editFrame->update();
     ui->layerFrame->update();
+
 }
 
 
 void MainWindow::on_pushButton_clicked()
 {
     ui->editFrame->setTool(EditFrame::Move);
+
 }
 
 
 void MainWindow::on_resizeButton_clicked()
 {
     ui->editFrame->setTool(EditFrame::Resize);
+
 }
 
 
 void MainWindow::on_brushButton_clicked()
 {
     ui->editFrame->setTool(EditFrame::Brush);
+
 }
 
+
+void MainWindow::on_selectionButton_clicked()
+{
+    ui->editFrame->setTool(EditFrame::Selection);
+
+}
 
 void MainWindow::on_brushSizeBox_valueChanged(int arg1)
 {
@@ -79,5 +90,8 @@ void MainWindow::on_ShapeComboBox_currentIndexChanged(int index)
             ui->editFrame->setBrushShape(EditFrame::FadedCircle);
             break;
     }
+
 }
+
+
 

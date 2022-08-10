@@ -6,9 +6,23 @@ EditFrame::EditFrame(QWidget *parent)
 {
     setMouseTracking(true);
     adjustBrushCursor();
+    QTimer *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &EditFrame::selectionDisplaySwitch);
+    timer->start(750);
+    setFocusPolicy(Qt::StrongFocus);
+
 }
 
-void EditFrame::adjustSize()
+void EditFrame::selectionDisplaySwitch()
+{
+    if(hasSelectedArea())
+    {
+        selectedAreaDisplayState = !selectedAreaDisplayState;
+        update();
+    }
+}
+
+void EditFrame::adjustSize(bool quick)
 {
     auto maxX = -1, maxY = -1;
     for(const auto& l : layers)
@@ -20,9 +34,9 @@ void EditFrame::adjustSize()
         maxX = max(maxX, xr);
         maxY = max(maxY, yr);
     }
-
     setMinimumWidth(maxX);
     setMinimumHeight(maxY);
+    if(!quick) selectedArea.resize(maxX, maxY);
 }
 
 void EditFrame::setImg(QString path)
@@ -45,11 +59,30 @@ void EditFrame::setBrushColor(const QColor& color)
 
 void EditFrame::adjustBrushCursor()
 {
-    auto img = brushShape->getImg();
+    int zoomedBrushSize = brushShape->getSize()*zoom;
+    auto img = brushShape->getImg().scaled(zoomedBrushSize, zoomedBrushSize, Qt::KeepAspectRatio);
     brushCursor = QCursor(QPixmap::fromImage(img), 0, 0);
     if(tool == Brush)
     {
         setCursor(brushCursor);
+    }
+
+    QImage selectImg(zoomedBrushSize+1, zoomedBrushSize+1, QImage::Format_ARGB32);
+    selectImg.fill(Qt::transparent);
+    QPainter painter(&selectImg);
+    painter.setPen(Qt::black);
+    painter.drawEllipse(QPoint(zoomedBrushSize/2, zoomedBrushSize/2), zoomedBrushSize/2, zoomedBrushSize/2);
+    painter.drawLine(zoomedBrushSize/6, zoomedBrushSize/2, zoomedBrushSize - zoomedBrushSize/6, zoomedBrushSize/2);
+    selectionSubCursor = QCursor(QPixmap::fromImage(selectImg));
+    painter.drawLine(zoomedBrushSize/2, zoomedBrushSize/6, zoomedBrushSize/2, zoomedBrushSize - zoomedBrushSize/6);
+    selectionAddCursor = QCursor(QPixmap::fromImage(selectImg));
+    if(tool == Selection)
+    {
+        if(toolSpecial)
+            setCursor(selectionSubCursor);
+        else
+            setCursor(selectionAddCursor);
+
     }
 }
 
@@ -103,6 +136,10 @@ void EditFrame::setTool(Tools tool)
             setCursor(Qt::SizeBDiagCursor);
             editTool = nullptr;
             break;
+        case Selection:
+            setCursor(selectionAddCursor);
+            editTool = make_unique<SelectTool>(this, &brushShape);
+            break;
     }
 
 }
@@ -113,7 +150,16 @@ bool EditFrame::event(QEvent *event)
     {
         editTool->rerouteEvent(event, layers);
     }
-
+    if(event->type() == QEvent::KeyPress && static_cast<QKeyEvent*>(event)->key() == Qt::Key_Alt)
+    {
+        toolSpecial = true;
+        if(tool == Selection) setCursor(selectionSubCursor);
+    }
+    if(event->type() == QEvent::KeyRelease && static_cast<QKeyEvent*>(event)->key() == Qt::Key_Alt)
+    {
+        toolSpecial = false;
+        if(tool == Selection) setCursor(selectionAddCursor);
+    }
     return QWidget::event(event);
 }
 
@@ -131,27 +177,27 @@ void EditFrame::paintEvent(QPaintEvent *event)
         resizedLayer.setSize(resizedLayer.size()*zoom);
         painter.drawImage(resizedLayer,l.getImg());
     }
-}
-
-void EditFrame::changeZoomBy(double amount)
-{
-    zoom += amount;
-    update();
-    adjustSize();
-    adjustBrushCursor();
+    if(hasSelectedArea())
+    {
+        auto img = selectedAreaDisplayState ? selectedArea.getContourImg1() : selectedArea.getContourImg2();
+        painter.drawImage(QRect(0,0,img.width()*zoom, img.height()*zoom), img);
+    }
 }
 
 #define ZOOM_DIST_RATIO 200.0
 
 void EditFrame::mouseMoveEvent(QMouseEvent *event)
 {   
+    setFocus();
     if(tool == Resize && mouseDown)
     {
         auto mouseNow = event->pos();
         auto dist = mouseNow - lastMouse;
         auto totalDist = dist.y() - dist.x();
         auto zoomChange = totalDist / ZOOM_DIST_RATIO;
-        changeZoomBy(zoomChange);
+        zoom += zoomChange;
+        update();
+        adjustSize(true);
     }
     lastMouse = event->pos();
 }
@@ -169,6 +215,7 @@ void EditFrame::mouseReleaseEvent(QMouseEvent *event)
     if(tool == Resize && mouseDown)
     {
         mouseDown = false;
+        adjustBrushCursor();
     }
 }
 
@@ -176,3 +223,19 @@ QVector<Layer>* EditFrame::getLayersRef()
 {
     return &layers;
 }
+
+SelectedArea* EditFrame::getSelectedAreaRef()
+{
+    return &selectedArea;
+}
+
+bool EditFrame::hasSelectedArea() const
+{
+    return selectedArea.hasSelected();
+}
+
+bool EditFrame::isSpecialTool() const
+{
+    return toolSpecial;
+}
+

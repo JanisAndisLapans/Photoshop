@@ -31,6 +31,8 @@ set(PROJECT_SOURCES
         brushfadedcircle.cpp
         selecttool.cpp
         layerframe.cpp
+        selectedarea.cpp
+        imagealgorithms.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

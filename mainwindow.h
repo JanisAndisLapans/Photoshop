@@ -7,6 +7,7 @@
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QStandardPaths>
+#include <QKeyEvent>
 
 #include <utility>
 #include <iostream>
@@ -43,6 +44,10 @@ private slots:
     void on_ShapeComboBox_currentTextChanged(const QString &arg1);
 
     void on_ShapeComboBox_currentIndexChanged(int index);
+
+    void on_selectionButton_clicked();
+
+protected:
 
 private:
     Ui::MainWindow *ui;
