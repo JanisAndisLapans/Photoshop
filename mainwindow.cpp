@@ -7,8 +7,34 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    currTool = new PointerTool(ui->editFrame);
+    tools["pointer"] = currTool;
+    auto move = new MoveTool(ui->editFrame,ui->editFrame->getLayersRef());
+    tools["move"] = move;
+    auto select = new SelectTool(ui->editFrame, ui->editFrame->getLayersRef());
+    tools["select"] = select;
+    auto paint = new BrushTool(ui->editFrame, ui->editFrame->getLayersRef());
+    tools["paint"] = paint;
+    auto zoom = new ZoomTool(ui->editFrame);
+    tools["zoom"] = zoom;
+
+    ui->OptionLayout->layout()->addWidget(select->getMenu());
+    select->getMenu()->setVisible(false);
+    ui->OptionLayout->layout()->addWidget(paint->getMenu());
+    paint->getMenu()->setVisible(false);
+    ui->OptionLayout->layout()->addWidget(zoom->getMenu());
+    zoom->getMenu()->setVisible(false);
+    ui->OptionLayout->layout()->addWidget(move->getMenu());
+    move->getMenu()->setVisible(false);
+    ui->OptionLayout->layout()->addWidget(currTool->getMenu());
+    currTool->setCursor();
+    ui->editFrame->installEventFilter(currTool);
+
     ui->layerFrame->setEditFrame(ui->editFrame);
     ui->menubar->setFocusProxy(ui->editFrame);
+
+    ui->editFrame->setScrollArea(ui->scrollArea);
 }
 
 MainWindow::~MainWindow()
@@ -27,71 +53,38 @@ void MainWindow::on_actionOpen_triggered()
 
 }
 
+void MainWindow::enableTool(string name)
+{
+    currTool->getMenu()->setVisible(false);
+    ui->editFrame->removeEventFilter(currTool);
+    currTool = tools[name];
+    currTool->getMenu()->setVisible(true);
+    currTool->setCursor();
+    ui->editFrame->installEventFilter(currTool);
+}
 
 void MainWindow::on_pushButton_clicked()
 {
-    ui->editFrame->setTool(EditFrame::Move);
-
+    enableTool("move");
 }
 
 
 void MainWindow::on_resizeButton_clicked()
 {
-    ui->editFrame->setTool(EditFrame::Resize);
-
+    enableTool("zoom");
 }
 
 
 void MainWindow::on_brushButton_clicked()
 {
-    ui->editFrame->setTool(EditFrame::Brush);
-
+    enableTool("paint");
 }
-
 
 void MainWindow::on_selectionButton_clicked()
 {
-    ui->editFrame->setTool(EditFrame::Selection);
-
+    enableTool("select");
 }
 
-void MainWindow::on_brushSizeBox_valueChanged(int arg1)
-{
-    ui->editFrame->setBrushSize(arg1);
-}
-
-
-void MainWindow::on_pushButton_3_clicked()
-{
-    pickedColor = QColorDialog::getColor(pickedColor, this);
-    auto css = "QLabel { background-color :" + pickedColor.name() + "}";
-    ui->colorLabel->setStyleSheet(css);
-    ui->editFrame->setBrushColor(pickedColor);
-}
-
-
-void MainWindow::on_ShapeComboBox_currentTextChanged(const QString &arg1)
-{
-
-}
-
-
-void MainWindow::on_ShapeComboBox_currentIndexChanged(int index)
-{
-    switch(index)
-    {
-        case 0: //square
-            ui->editFrame->setBrushShape(EditFrame::Square);
-            break;
-        case 1: //circle
-            ui->editFrame->setBrushShape(EditFrame::Circle);
-            break;
-        case 2: //faded circle
-            ui->editFrame->setBrushShape(EditFrame::FadedCircle);
-            break;
-    }
-
-}
 
 
 

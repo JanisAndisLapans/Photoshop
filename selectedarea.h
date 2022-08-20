@@ -26,6 +26,10 @@ public:
     void resize(int width, int height);
     long long getPixelCount() const;
     int getSize() const;
+    inline bool isSelected(int x, int y) const
+    {
+        return selectedArea[x + y*size]==1;
+    }
     ~SelectedArea();
 private:
     void generateImgAnew();

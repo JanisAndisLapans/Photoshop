@@ -33,6 +33,18 @@ set(PROJECT_SOURCES
         layerframe.cpp
         selectedarea.cpp
         imagealgorithms.h
+        selecttoolmenu.cpp
+        selecttoolmenu.ui
+        brushtoolmenu.cpp
+        brushtoolmenu.ui
+        zoomtoolmenu.cpp
+        zoomtoolmenu.ui
+        movetoolmenu.cpp
+        movetoolmenu.ui
+        zoomtool.cpp
+        pointertool.cpp
+        pointertoolmenu.cpp
+        pointertoolmenu.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

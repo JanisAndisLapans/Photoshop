@@ -2,12 +2,20 @@
 #define MAINWINDOW_H
 
 #include "editframe.h"
+#include "edittool.h"
+#include "brushtool.h"
+#include "movetool.h"
+#include "selecttool.h"
+#include "zoomtool.h"
+#include "pointertool.h"
+
 
 #include <QMainWindow>
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QStandardPaths>
 #include <QKeyEvent>
+#include <QMap>
 
 #include <utility>
 #include <iostream>
@@ -37,20 +45,16 @@ private slots:
 
     void on_brushButton_clicked();
 
-    void on_brushSizeBox_valueChanged(int arg1);
-
-    void on_pushButton_3_clicked();
-
-    void on_ShapeComboBox_currentTextChanged(const QString &arg1);
-
-    void on_ShapeComboBox_currentIndexChanged(int index);
-
     void on_selectionButton_clicked();
 
 protected:
 
 private:
+    void enableTool(string name);
+
     Ui::MainWindow *ui;
     QColor pickedColor = Qt::green;
+    unordered_map<string,EditTool*> tools;
+    EditTool *currTool;
 };
 #endif // MAINWINDOW_H

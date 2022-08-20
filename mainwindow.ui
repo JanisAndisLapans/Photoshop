@@ -27,104 +27,9 @@ QStatusBar{
 </string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_5">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <layout class="QHBoxLayout" name="OptionLayout" stretch="33,33,17,17">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QLabel" name="label_3">
-          <property name="font">
-           <font>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">color:white
-</string>
-          </property>
-          <property name="text">
-           <string>Brush shape:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="ShapeComboBox">
-          <item>
-           <property name="text">
-            <string>Square</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Circle</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Faded circle</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="80,20">
-        <item>
-         <widget class="QPushButton" name="pushButton_3">
-          <property name="text">
-           <string>Set brush color</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="colorLabel">
-          <property name="styleSheet">
-           <string notr="true">background: green;</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_2">
-        <property name="font">
-         <font>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">color: white</string>
-        </property>
-        <property name="text">
-         <string>Brush size:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="brushSizeBox">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>500</number>
-        </property>
-        <property name="value">
-         <number>15</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <layout class="QHBoxLayout" name="OptionLayout"/>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,77,20">
@@ -217,19 +122,33 @@ QStatusBar{
            <x>0</x>
            <y>0</y>
            <width>954</width>
-           <height>751</height>
+           <height>782</height>
           </rect>
          </property>
-         <widget class="EditFrame" name="editFrame" native="true">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>954</width>
-            <height>751</height>
-           </rect>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <property name="leftMargin">
+           <number>0</number>
           </property>
-         </widget>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="EditFrame" name="editFrame" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>
@@ -250,7 +169,7 @@ QStatusBar{
                  <x>0</x>
                  <y>0</y>
                  <width>240</width>
-                 <height>367</height>
+                 <height>383</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -283,7 +202,7 @@ QStatusBar{
                  <x>0</x>
                  <y>0</y>
                  <width>240</width>
-                 <height>367</height>
+                 <height>382</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -298,7 +217,7 @@ QStatusBar{
                      <x>0</x>
                      <y>0</y>
                      <width>216</width>
-                     <height>343</height>
+                     <height>358</height>
                     </rect>
                    </property>
                    <layout class="QHBoxLayout" name="horizontalLayout_2">

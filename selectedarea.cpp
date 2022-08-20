@@ -145,7 +145,6 @@ int SelectedArea::getSize() const
     return size;
 }
 
-
 SelectedArea::~SelectedArea()
 {
     delete[] selectedArea;

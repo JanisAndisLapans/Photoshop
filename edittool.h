@@ -5,19 +5,21 @@
 
 #include <vector>
 
-#include <QEvent>
-
 using namespace std;
 
 class EditFrame;
 
-class EditTool
+class EditTool : public QObject
 {
+    Q_OBJECT
+
 public:
     EditTool(EditFrame *editFrame);
-    virtual void rerouteEvent(QEvent *event, QVector<Layer>& layers) = 0;
+    virtual QWidget* getMenu() = 0;
+    virtual void setCursor() = 0;
 protected:
     EditFrame *editFrame;
+    virtual bool eventFilter(QObject *obj, QEvent *event) override = 0;
 };
 
 #endif // EDITTOOL_H

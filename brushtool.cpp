@@ -1,37 +1,77 @@
 #include "brushtool.h"
 #include "editframe.h"
 
-BrushTool::BrushTool(EditFrame *editFrame, const unique_ptr<BrushShape>* brush)
-    :EditTool(editFrame), brushShape(brush)
+BrushTool::BrushTool(EditFrame *editFrame, QVector<Layer>* layers)
+    :EditTool(editFrame), layers(layers)
 {
+    menu = new BrushToolMenu();
+    connect(menu, SIGNAL(cursorChanged()), this, SLOT(onCursorChanged()));
+}
 
+void BrushTool::drawPixels(const QPoint& pos, const QPoint& realPos, QImage* img, const QImage& brushImg)
+{
+    auto bits = reinterpret_cast<QRgb*>(img->bits());
+    auto brushBits = reinterpret_cast<const QRgb*>(brushImg.constBits());
+    for(auto y = 0; y<brushImg.height(); y++)
+    {
+        auto inImgY = y + pos.y();
+        auto inAreaY = y + realPos.y();
+        if(inImgY >=img->height() || inImgY<0) break;
+        for(auto x = 0; x<brushImg.width(); x++)
+        {
+            auto inImgX = x + pos.x();
+            auto inAreaX = x + realPos.x();
+            if(inImgX>=img->width() || inImgX<0) break;
+            if(editFrame->hasSelectedArea() && !editFrame->getSelectedAreaRef()->isSelected(inAreaX, inAreaY)
+                    || drawnArea[inAreaX + editFrame->getSelectedAreaRef()->getSize()*inAreaY]) continue;
+            QRgb newVal;
+            switch(menu->getMode())
+            {
+                case BrushToolMenu::Over:
+                    newVal = ImageAlgorithms::sourceOver(brushBits[x + y*brushImg.width()], bits[inImgX+inImgY*img->width()]);
+                    break;
+                case BrushToolMenu::Multiply:
+                    newVal = ImageAlgorithms::multiply(brushBits[x + y*brushImg.width()], bits[inImgX+inImgY*img->width()]);
+                    break;
+                case BrushToolMenu::Screen:
+                    newVal = ImageAlgorithms::screen(brushBits[x + y*brushImg.width()], bits[inImgX+inImgY*img->width()]);
+                    break;
+                case BrushToolMenu::Overlay:
+                    newVal = ImageAlgorithms::overlay(brushBits[x + y*brushImg.width()], bits[inImgX+inImgY*img->width()]);
+                    break;
+            }
+            if(newVal != bits[inImgX+inImgY*img->width()])
+                drawnArea[inAreaX + editFrame->getSelectedAreaRef()->getSize()*inAreaY] = true;
+            bits[inImgX+inImgY*img->width()] = newVal;
+        }
+    }
 }
 
 bool BrushTool::draw(Layer& l, const QPoint& currPos)
 {
-    auto brushImg = (*brushShape)->getImg();
+    auto brushImg = menu->getBrushShape().getImg();
     auto brushRectOnDisplay = brushImg.rect();
     auto resizedRect = l;
     resizedRect.setSize(resizedRect.size()*editFrame->getZoom());
     brushRectOnDisplay.translate(currPos);
     if(!brushRectOnDisplay.intersects(resizedRect)) return false;
-    auto brushImgRef = l.getImgRef();
-    auto brushRect = brushImg.rect();
+    auto canvasImgRef = l.getImgRef();
     auto translateAmount = -l.getPos();
     auto preciseXTranslate = static_cast<int>(static_cast<double>(currPos.x())/editFrame->getZoom()),
          preciseYTranslate = static_cast<int>(static_cast<double>(currPos.y())/editFrame->getZoom());
     translateAmount += QPoint(preciseXTranslate, preciseYTranslate);
-    brushRect.translate(translateAmount);
-    QPainter painter(brushImgRef);
-    painter.drawImage(brushRect, brushImg);
+    drawPixels(translateAmount, currPos/editFrame->getZoom(), canvasImgRef, brushImg);
     return true;
 }
 
-void BrushTool::onDownMouse(QMouseEvent *eventPress, QVector<Layer>& layers)
+void BrushTool::onDownMouse(QMouseEvent *eventPress)
 {
     mouseDown = true;
+    auto areaSize = editFrame->getSelectedAreaRef()->getSize();
+    drawnArea = new bool[areaSize*areaSize];
+    memset(drawnArea, false, areaSize*areaSize);
     auto currPos = eventPress->pos();
-    for(auto riter = layers.rbegin(); riter!=layers.rend(); riter++)
+    for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& l = *riter;
         if(draw(l, currPos)) break;
@@ -39,11 +79,11 @@ void BrushTool::onDownMouse(QMouseEvent *eventPress, QVector<Layer>& layers)
     editFrame->update();
 }
 
-void BrushTool::onMoveMouse(QMouseEvent *eventMove, QVector<Layer>& layers)
+void BrushTool::onMoveMouse(QMouseEvent *eventMove)
 {
     if(!mouseDown) return;
     auto currPos = eventMove->pos();
-    for(auto riter = layers.rbegin(); riter!=layers.rend(); riter++)
+    for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& l = *riter;
         if(draw(l, currPos)) break;
@@ -53,7 +93,11 @@ void BrushTool::onMoveMouse(QMouseEvent *eventMove, QVector<Layer>& layers)
 
 void BrushTool::onReleaseMouse(QMouseEvent *releaseEvent)
 {
-    mouseDown = false;
+    if(mouseDown)
+    {
+        mouseDown = false;
+        delete[] drawnArea;
+    }
 }
 
 void BrushTool::onLeaveMouse(QHoverEvent *hoverEvent)
@@ -61,21 +105,48 @@ void BrushTool::onLeaveMouse(QHoverEvent *hoverEvent)
     onReleaseMouse(reinterpret_cast<QMouseEvent*>(hoverEvent));
 }
 
-void BrushTool::rerouteEvent(QEvent *event, QVector<Layer>& layers)
+bool BrushTool::eventFilter(QObject *obj, QEvent *event)
 {
     switch(event->type())
     {
         case QEvent::MouseButtonPress:
-            onDownMouse(static_cast<QMouseEvent*>(event), layers);
+            onDownMouse(static_cast<QMouseEvent*>(event));
             break;
         case QEvent::MouseButtonRelease:
             onReleaseMouse(static_cast<QMouseEvent*>(event));
             break;
         case QEvent::MouseMove:
-            onMoveMouse(static_cast<QMouseEvent*>(event), layers);
+            onMoveMouse(static_cast<QMouseEvent*>(event));
             break;
         case QEvent::HoverLeave:
             onLeaveMouse(static_cast<QHoverEvent*>(event));
             break;
+        default:
+            return QObject::eventFilter(obj, event);
+            break;
     }
+    return true;
+}
+
+BrushToolMenu* BrushTool::getMenu()
+{
+    return menu;
+}
+
+void BrushTool::adjustCursor()
+{
+    auto zoom = editFrame->getZoom();
+    int zoomedSize = menu->getBrushShape().getSize()*zoom;
+    auto img = menu->getBrushShape().getImg().scaled(zoomedSize, zoomedSize, Qt::KeepAspectRatio);
+    editFrame->setCursor(QCursor(QPixmap::fromImage(img), 0, 0));
+}
+
+void BrushTool::onCursorChanged()
+{
+    adjustCursor();
+}
+
+void BrushTool::setCursor()
+{
+    adjustCursor();
 }

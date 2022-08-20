@@ -3,7 +3,7 @@
 void BrushSquare::initialize(const QColor& color)
 {
     BrushShape::initialize(color);
-    img = QImage(QSize(size,size),QImage::Format_RGB16);
+    img = QImage(QSize(size,size),QImage::Format_RGB32);
     img.fill(color);
 }
 

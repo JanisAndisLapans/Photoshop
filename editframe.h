@@ -23,6 +23,7 @@
 #include <QException>
 #include <QTimer>
 #include <QKeyEvent>
+#include <QScrollArea>
 
 
 using namespace std;
@@ -30,51 +31,28 @@ using namespace std;
 class EditFrame : public QFrame
 {
 public:
-    enum Tools{
-        Cursor, Move, Resize, Brush, Selection
-    };
-
-    enum BrushType{
-        Square, Circle, FadedCircle
-    };
-
     EditFrame(QWidget *parent = nullptr);
     void setImg(QString path);
     virtual void paintEvent(QPaintEvent * event);
-    void setTool(Tools tool);
     void adjustSize(bool quick=false);
-    void setBrushSize(int size);
     double getZoom() const;
-    void setBrushColor(const QColor& color);
-    void setBrushShape(BrushType type);
+    void changeZoom(double amount);
     QVector<Layer>* getLayersRef();
     SelectedArea* getSelectedAreaRef();
     bool hasSelectedArea() const;
-    bool isSpecialTool() const;
+    void lookAt(QPoint point);
+    void setScrollArea(QScrollArea *scrollArea);
 
 protected:
-    bool event(QEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event) override;
-    virtual void mousePressEvent(QMouseEvent *event) override;
-    virtual void mouseReleaseEvent(QMouseEvent *event) override;
-
+    virtual void mouseMoveEvent(QMouseEvent * ev) override;
 private:
      QVector<Layer> layers;
-     Tools tool = Cursor;
-     BrushType brushType;
-     bool mouseDown = false;
-     QPoint lastMouse;
-     unique_ptr<EditTool> editTool;
+     EditTool* editTool;
      double zoom = 1.0;
-     unique_ptr<BrushShape> brushShape = make_unique<BrushSquare>(15,Qt::green);
-     QCursor brushCursor;
-     QCursor selectionSubCursor;
-     QCursor selectionAddCursor;
      SelectedArea selectedArea;
      bool selectedAreaDisplayState = false;
-     bool toolSpecial = false;
+     QScrollArea *scrollArea;
 
-     void adjustBrushCursor();
 private slots:
      void selectionDisplaySwitch();
 

@@ -1,17 +1,17 @@
 #include "movetool.h"
 #include "editframe.h"
 
-MoveTool::MoveTool(EditFrame *editFrame)
-    :EditTool(editFrame)
+MoveTool::MoveTool(EditFrame *editFrame, QVector<Layer>* layers)
+    :EditTool(editFrame), layers(layers)
 {
-
+    menu = new MoveToolMenu();
 }
 
-void MoveTool::onDownMouse(QMouseEvent *eventPress, QVector<Layer>& layers)
+void MoveTool::onDownMouse(QMouseEvent *eventPress)
 {
     mouseDown = true;
     startMouse = eventPress->pos();
-    for(auto riter = layers.rbegin(); riter!=layers.rend(); riter++)
+    for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& layer = *riter;
         auto rect = QRect(layer);
@@ -48,12 +48,12 @@ void MoveTool::onLeaveMouse(QHoverEvent *hoverEvent)
     onReleaseMouse(reinterpret_cast<QMouseEvent*>(hoverEvent));
 }
 
-void MoveTool::rerouteEvent(QEvent *event, QVector<Layer>& layers)
+bool MoveTool::eventFilter(QObject *obj, QEvent *event)
 {
     switch(event->type())
     {
         case QEvent::MouseButtonPress:
-            onDownMouse(static_cast<QMouseEvent*>(event), layers);
+            onDownMouse(static_cast<QMouseEvent*>(event));
             break;
         case QEvent::MouseButtonRelease:
             onReleaseMouse(static_cast<QMouseEvent*>(event));
@@ -64,5 +64,19 @@ void MoveTool::rerouteEvent(QEvent *event, QVector<Layer>& layers)
         case QEvent::HoverLeave:
             onLeaveMouse(static_cast<QHoverEvent*>(event));
             break;
+        default:
+            return QObject::eventFilter(obj, event);
+            break;
     }
+    return true;
+}
+
+MoveToolMenu* MoveTool::getMenu()
+{
+    return menu;
+}
+
+void MoveTool::setCursor()
+{
+    editFrame->setCursor(Qt::SizeAllCursor);
 }

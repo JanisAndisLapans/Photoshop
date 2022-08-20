@@ -3,6 +3,8 @@
 
 #include "edittool.h"
 #include "brushshape.h"
+#include "ImageAlgorithms.h"
+#include "brushtoolmenu.h"
 
 #include <utility>
 #include <chrono>
@@ -13,22 +15,34 @@
 #include <QHoverEvent>
 #include <QPoint>
 #include <QPainter>
+#include <QCursor>
 
 using namespace std;
 
 class BrushTool : public EditTool
 {
+    Q_OBJECT
 public:
-    BrushTool(EditFrame *editFrame, const unique_ptr<BrushShape>* brush);
-    virtual void rerouteEvent(QEvent *event, QVector<Layer>& layers) override;
+    BrushTool(EditFrame *editFrame, QVector<Layer>* layers);
+    virtual BrushToolMenu* getMenu() override;
+    virtual void setCursor() override;
+protected:
+    virtual bool eventFilter(QObject *obj, QEvent *event) override;
+private slots:
+    void onCursorChanged();
 private:
     bool draw(Layer& l, const QPoint& point);
     void onReleaseMouse(QMouseEvent *event);
-    void onDownMouse(QMouseEvent *event, QVector<Layer>& layers);
-    void onMoveMouse(QMouseEvent *event, QVector<Layer>& layers);
+    void onDownMouse(QMouseEvent *event);
+    void onMoveMouse(QMouseEvent *event);
     void onLeaveMouse(QHoverEvent *event);
+
+    void drawPixels(const QPoint& pos, const QPoint& realPos, QImage* img, const QImage& brushImg);
+    void adjustCursor();
     bool mouseDown = false;
-    const unique_ptr<BrushShape>* brushShape;
+    QVector<Layer>* layers;
+    BrushToolMenu *menu;
+    bool *drawnArea;
 };
 
 #endif // MOVETOOL_H

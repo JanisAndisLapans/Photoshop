@@ -5,11 +5,14 @@
 
 #include <QImage>
 #include <QColor>
+#include <QObject>
 
 using namespace std;
 
-class BrushShape
+class BrushShape : public QObject
 {
+    Q_OBJECT
+
 public:
     BrushShape(int size, const QColor& color);
 
