@@ -9,6 +9,7 @@ EditFrame::EditFrame(QWidget *parent)
     connect(timer, &QTimer::timeout, this, &EditFrame::selectionDisplaySwitch);
     timer->start(750);
     setFocusPolicy(Qt::StrongFocus);
+    setAcceptDrops(true);
 }
 
 void EditFrame::selectionDisplaySwitch()
@@ -42,6 +43,7 @@ void EditFrame::setImg(QString path)
 {
     layers.append(Layer(path, layers.size()));
     adjustSize();
+    update();
 }
 
 double EditFrame::getZoom() const
@@ -101,4 +103,39 @@ void EditFrame::lookAt(QPoint point)
 void EditFrame::setScrollArea(QScrollArea *scrollArea)
 {
     this->scrollArea = scrollArea;
+}
+
+void EditFrame::dragEnterEvent(QDragEnterEvent *ev)
+{
+    if(ev->mimeData()->hasUrls())
+        ev->accept();
+    else
+        ev->ignore();
+}
+void EditFrame::dragMoveEvent(QDragMoveEvent *ev)
+{
+    if(ev->mimeData()->hasUrls())
+    {
+        ev->setDropAction(Qt::CopyAction);
+        ev->accept();
+    }
+    else
+        ev->ignore();
+}
+void EditFrame::dropEvent(QDropEvent *ev)
+{
+    if(ev->mimeData()->hasUrls())
+    {
+        ev->setDropAction(Qt::CopyAction);
+        ev->accept();
+        static const auto acceptedTypes = QVector<QString>{"png", "jpg", "bmp"};
+        for(auto& url : ev->mimeData()->urls())
+        {
+            if(url.isLocalFile() && acceptedTypes.contains(QFileInfo(url.fileName()).completeSuffix()))
+            {
+                setImg(url.toLocalFile());
+            }
+        }
+    }
+
 }

@@ -38,7 +38,7 @@ QStatusBar{
         <item>
          <widget class="QPushButton" name="resizeButton">
           <property name="toolTip">
-           <string>Resize</string>
+           <string>Resize (Z)</string>
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
@@ -56,7 +56,7 @@ QStatusBar{
         <item>
          <widget class="QPushButton" name="selectionButton">
           <property name="toolTip">
-           <string>free selection tool</string>
+           <string>Free selection tool (S)</string>
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
@@ -75,7 +75,7 @@ QStatusBar{
         <item>
          <widget class="QPushButton" name="brushButton">
           <property name="toolTip">
-           <string>Brush</string>
+           <string>Brush (B)</string>
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
@@ -94,7 +94,7 @@ QStatusBar{
         <item>
          <widget class="QPushButton" name="pushButton">
           <property name="toolTip">
-           <string>Move</string>
+           <string>Move (M)</string>
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{

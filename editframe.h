@@ -24,6 +24,8 @@
 #include <QTimer>
 #include <QKeyEvent>
 #include <QScrollArea>
+#include <QMimeData>
+#include <QFileInfo>
 
 
 using namespace std;
@@ -45,6 +47,10 @@ public:
 
 protected:
     virtual void mouseMoveEvent(QMouseEvent * ev) override;
+    virtual void dragEnterEvent(QDragEnterEvent *ev) override;
+    virtual void dragMoveEvent(QDragMoveEvent *ev) override;
+    virtual void dropEvent(QDropEvent *ev) override;
+
 private:
      QVector<Layer> layers;
      EditTool* editTool;

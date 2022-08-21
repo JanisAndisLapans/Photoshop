@@ -48,12 +48,11 @@ void MainWindow::on_actionOpen_triggered()
         tr("Open Image"), QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) , tr("Image Files (*.png *.jpg *.bmp)"));
 
     ui->editFrame->setImg(fileName);
-    ui->editFrame->update();
     ui->layerFrame->update();
 
 }
 
-void MainWindow::enableTool(string name)
+void MainWindow::enableTool(const string& name)
 {
     currTool->getMenu()->setVisible(false);
     ui->editFrame->removeEventFilter(currTool);
@@ -83,6 +82,25 @@ void MainWindow::on_brushButton_clicked()
 void MainWindow::on_selectionButton_clicked()
 {
     enableTool("select");
+}
+
+void MainWindow::keyPressEvent(QKeyEvent* ev)
+{
+    switch(ev->key())
+    {
+        case Qt::Key_Z:
+            enableTool("zoom");
+            break;
+        case Qt::Key_S:
+            enableTool("select");
+            break;
+        case Qt::Key_B:
+            enableTool("paint");
+            break;
+        case Qt::Key_M:
+            enableTool("move");
+            break;
+    }
 }
 
 

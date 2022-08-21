@@ -48,9 +48,9 @@ private slots:
     void on_selectionButton_clicked();
 
 protected:
-
+    virtual void keyPressEvent(QKeyEvent* ev) override;
 private:
-    void enableTool(string name);
+    void enableTool(const string& name);
 
     Ui::MainWindow *ui;
     QColor pickedColor = Qt::green;
