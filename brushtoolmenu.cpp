@@ -85,6 +85,16 @@ BrushToolMenu::Mode BrushToolMenu::getMode() const
     return currMode;
 }
 
+void BrushToolMenu::setBrushSize(int newSize)
+{
+    size = newSize;
+    brushShape->resize(size);
+    ui->sizeSpinBox->blockSignals(true);
+    ui->sizeSpinBox->setValue(newSize);
+    ui->sizeSpinBox->blockSignals(false);
+}
+
+
 BrushToolMenu::~BrushToolMenu()
 {
     delete ui;

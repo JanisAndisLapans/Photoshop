@@ -32,7 +32,7 @@ QStatusBar{
      <layout class="QHBoxLayout" name="OptionLayout"/>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,77,20">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,77,20">
       <item>
        <layout class="QVBoxLayout" name="leftToolLayout">
         <item>
@@ -54,9 +54,28 @@ QStatusBar{
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="stampPushButton">
+          <property name="toolTip">
+           <string>Stamp clone tool (S)</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	border-image : url(:/icons/resources/stamp.png) 0 0 0 0 stretch stretch;
+	background: rgb(206, 206, 206);
+	border-radius: 10px;
+	padding:5px;
+}
+</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="selectionButton">
           <property name="toolTip">
-           <string>Free selection tool (S)</string>
+           <string>Free selection tool (W)</string>
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{

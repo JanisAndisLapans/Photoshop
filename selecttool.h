@@ -15,6 +15,7 @@
 #include <QPoint>
 #include <QStack>
 #include <QLabel>
+#include <QPoint>
 
 using namespace std;
 
@@ -45,6 +46,8 @@ private:
     QVector<Layer>* layers;
     selectToolMenu *menu;
     bool isAdd = true;
+    bool dragResizing = false;
+    QPoint startMouseResize;
     QCursor subCursor, addCursor;
 private slots:
     void onCursorChanged();

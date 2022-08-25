@@ -1,5 +1,4 @@
 #include "pointertool.h"
-#include "editframe.h"
 
 PointerTool::PointerTool(EditFrame* editFrame)
     :EditTool(editFrame)

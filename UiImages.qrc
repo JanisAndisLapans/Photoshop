@@ -5,5 +5,6 @@
         <file>resources/magnify.png</file>
         <file>resources/paintbrush.png</file>
         <file>resources/selection.png</file>
+        <file>resources/stamp.png</file>
     </qresource>
 </RCC>

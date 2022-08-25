@@ -1,6 +1,5 @@
 #include "editframe.h"
 
-
 EditFrame::EditFrame(QWidget *parent)
     :QFrame(parent)
 {
@@ -51,6 +50,22 @@ double EditFrame::getZoom() const
     return zoom;
 }
 
+void EditFrame::drawResizeBall(int size, const QPoint& resizeBallCenter)
+{
+    drawingResizeBall = true;
+    this->centerResizeBall = resizeBallCenter;
+    resizeBallSize = size;
+    update();
+}
+
+
+void EditFrame::finishDrawingResizeBall()
+{
+    drawingResizeBall = false;
+    update();
+}
+
+
 void EditFrame::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
@@ -64,6 +79,11 @@ void EditFrame::paintEvent(QPaintEvent *event)
     {
         auto img = selectedAreaDisplayState ? selectedArea.getContourImg1() : selectedArea.getContourImg2();
         painter.drawImage(QRect(0,0,img.width()*zoom, img.height()*zoom), img);
+    }
+    if(drawingResizeBall)
+    {
+        painter.setBrush(Qt::red);
+        painter.drawEllipse(centerResizeBall, resizeBallSize, resizeBallSize);
     }
 }
 
@@ -139,3 +159,5 @@ void EditFrame::dropEvent(QDropEvent *ev)
     }
 
 }
+
+

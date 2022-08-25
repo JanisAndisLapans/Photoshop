@@ -1,4 +1,4 @@
-#ifndef EDITFRAME_H
+cm#ifndef EDITFRAME_H
 #define EDITFRAME_H
 
 #include "layer.h"

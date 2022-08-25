@@ -1,5 +1,4 @@
 #include "movetool.h"
-#include "editframe.h"
 
 MoveTool::MoveTool(EditFrame *editFrame, QVector<Layer>* layers)
     :EditTool(editFrame), layers(layers)

@@ -2,15 +2,7 @@
 #define EDITFRAME_H
 
 #include "layer.h"
-#include "edittool.h"
-#include "movetool.h"
-#include "brushtool.h"
-#include "brushshape.h"
-#include "brushsquare.h"
-#include "brushfadedcircle.h"
-#include "brushcircle.h"
 #include "selectedarea.h"
-#include "selecttool.h"
 
 #include <memory>
 #include <cmath>
@@ -27,7 +19,6 @@
 #include <QMimeData>
 #include <QFileInfo>
 
-
 using namespace std;
 
 class EditFrame : public QFrame
@@ -35,7 +26,7 @@ class EditFrame : public QFrame
 public:
     EditFrame(QWidget *parent = nullptr);
     void setImg(QString path);
-    virtual void paintEvent(QPaintEvent * event);
+    virtual void paintEvent(QPaintEvent * event) override;
     void adjustSize(bool quick=false);
     double getZoom() const;
     void changeZoom(double amount);
@@ -44,6 +35,8 @@ public:
     bool hasSelectedArea() const;
     void lookAt(QPoint point);
     void setScrollArea(QScrollArea *scrollArea);
+    void drawResizeBall(int size, const QPoint& resizeBallCenter);
+    void finishDrawingResizeBall();
 
 protected:
     virtual void mouseMoveEvent(QMouseEvent * ev) override;
@@ -53,11 +46,13 @@ protected:
 
 private:
      QVector<Layer> layers;
-     EditTool* editTool;
      double zoom = 1.0;
      SelectedArea selectedArea;
      bool selectedAreaDisplayState = false;
      QScrollArea *scrollArea;
+     int resizeBallSize;
+     QPoint centerResizeBall;
+     bool drawingResizeBall = false;
 
 private slots:
      void selectionDisplaySwitch();

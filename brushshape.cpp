@@ -5,6 +5,11 @@ BrushShape::BrushShape(int size, const QColor& color)
 {
 }
 
+BrushShape::BrushShape(int size, const QImage& img)
+    : size(size)
+{
+}
+
 QImage BrushShape::getImg() const
 {
     return img;
@@ -20,11 +25,6 @@ bool BrushShape::isColorSrc() const
     return isColor;
 }
 
-const QImage* BrushShape::getSrcImg() const
-{
-    return srcImg;
-}
-
 void BrushShape::resize(int newSize)
 {
     size = newSize;
@@ -37,9 +37,19 @@ void BrushShape::changeSource(QColor color)
     initialize(color);
 }
 
+void BrushShape::changeSource(const QImage& img)
+{
+    initialize(img);
+}
+
 void BrushShape::initialize(const QColor& color)
 {
     isColor = true;
+}
+
+void BrushShape::initialize(const QImage& color)
+{
+    isColor = false;
 }
 
 int BrushShape::getSize() const

@@ -15,7 +15,7 @@ selectToolMenu::selectToolMenu(QWidget *parent) :
 void selectToolMenu::onSizeChange(int changedVal)
 {
     brushSize = changedVal;
-    freeDist = brushSize*changedVal;
+    freeDist = brushSize*2;
     emit cursorChanged();
 }
 void selectToolMenu::onDistChange(double changedVal)
@@ -47,6 +47,15 @@ int selectToolMenu::getStopSub() const
 int selectToolMenu::getFreeDist() const
 {
     return freeDist;
+}
+
+void selectToolMenu::setBrushSize(int newSize)
+{
+    brushSize = newSize;
+    freeDist = brushSize*2;
+    ui->sizeSpinBox->blockSignals(true);
+    ui->sizeSpinBox->setValue(newSize);
+    ui->sizeSpinBox->blockSignals(false);
 }
 
 selectToolMenu::~selectToolMenu()

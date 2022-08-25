@@ -12,6 +12,11 @@ SelectTool::SelectTool(EditFrame *editFrame, QVector<Layer> *layers)
 void SelectTool::onDownMouse(QMouseEvent *eventPress)
 {
     mouseDown = true;
+    if(dragResizing)
+    {
+        startMouse = eventPress->pos();
+        return;
+    }
     auto currPos = eventPress->pos();
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
@@ -29,8 +34,14 @@ void SelectTool::onDownMouse(QMouseEvent *eventPress)
 
 void SelectTool::onMoveMouse(QMouseEvent *eventMove)
 {
-    auto currPos = eventMove->pos();
     if(!mouseDown) return;
+    auto currPos = eventMove->pos();
+    if(dragResizing)
+    {
+        int radius = sqrt(pow(abs(currPos.x()-startMouse.x()),2) + pow(abs(currPos.y()-startMouse.y()),2));
+        editFrame->drawResizeBall(radius, startMouse);
+        return;
+    }
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& l = *riter;
@@ -48,6 +59,13 @@ void SelectTool::onMoveMouse(QMouseEvent *eventMove)
 void SelectTool::onReleaseMouse(QMouseEvent *releaseEvent)
 {
     mouseDown = false;
+    if(dragResizing)
+    {
+        editFrame->finishDrawingResizeBall();
+        auto currPos = releaseEvent->pos();
+        int newSize = sqrt(pow(abs(currPos.x()-startMouse.x()),2) + pow(abs(currPos.y()-startMouse.y()),2))*2;
+        menu->setBrushSize(newSize);
+    }
 }
 
 void SelectTool::onLeaveMouse(QHoverEvent *hoverEvent)
@@ -77,12 +95,22 @@ bool SelectTool::eventFilter(QObject *obj, QEvent *event)
                 isAdd = false;
                 onTurnAltCursor();
             }
+            else if(static_cast<QKeyEvent*>(event)->key()==Qt::Key_Control)
+            {
+                dragResizing = true;
+                editFrame->setCursor(Qt::BlankCursor);
+            }
             break;
         case QEvent::KeyRelease:
             if(static_cast<QKeyEvent*>(event)->key()==Qt::Key_Alt)
             {
                 isAdd = true;
                 onTurnPrimaryCursor();
+            }
+            else if(static_cast<QKeyEvent*>(event)->key()==Qt::Key_Control)
+            {
+                dragResizing = false;
+                adjustCursor();
             }
             break;
     }

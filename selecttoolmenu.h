@@ -19,6 +19,7 @@ public:
     int getStopAdd() const;
     int getStopSub() const;
     int getFreeDist() const;
+    void setBrushSize(int newSize);
 
     ~selectToolMenu();
 

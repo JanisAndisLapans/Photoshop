@@ -45,6 +45,9 @@ set(PROJECT_SOURCES
         pointertool.cpp
         pointertoolmenu.cpp
         pointertoolmenu.ui
+        stamptool.cpp
+        stamptoolmenu.cpp
+        stamptoolmenu.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

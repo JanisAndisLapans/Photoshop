@@ -15,21 +15,21 @@ class BrushShape : public QObject
 
 public:
     BrushShape(int size, const QColor& color);
+    BrushShape(int size, const QImage& img);
 
     void resize(int newSize);
     void changeSource(QColor newColor);
+    void changeSource(const QImage& newImage);
     QImage getImg() const;
     QColor getColor() const;
-    const QImage* getSrcImg() const;
     bool isColorSrc() const;
     int getSize() const;
 
 protected:
     virtual void initialize(const QColor& color);
+    virtual void initialize(const QImage& img);
     QImage img;
     int size;
-    QImage *srcImg;
-    QPoint srcImgPos;
     QColor sourceColor;
     bool isColor;
 };

@@ -18,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
     tools["paint"] = paint;
     auto zoom = new ZoomTool(ui->editFrame);
     tools["zoom"] = zoom;
+    auto stamp = new StampTool(ui->editFrame, ui->editFrame->getLayersRef());
+    tools["stamp"] = stamp;
 
     ui->OptionLayout->layout()->addWidget(select->getMenu());
     select->getMenu()->setVisible(false);
@@ -27,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     zoom->getMenu()->setVisible(false);
     ui->OptionLayout->layout()->addWidget(move->getMenu());
     move->getMenu()->setVisible(false);
+    ui->OptionLayout->layout()->addWidget(stamp->getMenu());
+    stamp->getMenu()->setVisible(false);
     ui->OptionLayout->layout()->addWidget(currTool->getMenu());
     currTool->setCursor();
     ui->editFrame->installEventFilter(currTool);
@@ -84,6 +88,12 @@ void MainWindow::on_selectionButton_clicked()
     enableTool("select");
 }
 
+void MainWindow::on_stampPushButton_clicked()
+{
+    enableTool("stamp");
+}
+
+
 void MainWindow::keyPressEvent(QKeyEvent* ev)
 {
     switch(ev->key())
@@ -91,8 +101,11 @@ void MainWindow::keyPressEvent(QKeyEvent* ev)
         case Qt::Key_Z:
             enableTool("zoom");
             break;
-        case Qt::Key_S:
+        case Qt::Key_W:
             enableTool("select");
+            break;
+        case Qt::Key_S:
+             enableTool("stamp");
             break;
         case Qt::Key_B:
             enableTool("paint");
@@ -102,6 +115,8 @@ void MainWindow::keyPressEvent(QKeyEvent* ev)
             break;
     }
 }
+
+
 
 
 

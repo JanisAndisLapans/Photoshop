@@ -1,5 +1,5 @@
-#ifndef BRUSHTOOLMENU_H
-#define BRUSHTOOLMENU_H
+#ifndef STAMPTOOLMENU_H
+#define STAMPTOOLMENU_H
 
 #include "brushshape.h"
 #include "brushcircle.h"
@@ -11,29 +11,31 @@
 #include <QColorDialog>
 #include <QObject>
 
+
 namespace Ui {
-class BrushToolMenu;
+class StampToolMenu;
 }
 
-class BrushToolMenu : public QWidget
+class StampToolMenu : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit BrushToolMenu(QWidget *parent = nullptr);
-
-    const BrushShape& getBrushShape() const;
+    explicit StampToolMenu(QWidget *parent = nullptr);
 
     enum Mode{
         Over, Multiply, Screen, Overlay
     };
 
-    Mode getMode() const;
-    void setBrushSize(int newSize);
+    enum BrushType{
+        Square, Circle, FadedCircle
+    };
 
-    ~BrushToolMenu();
-protected:
-    virtual bool eventFilter(QObject *obj, QEvent *event) override;
+    Mode getMode() const;
+    BrushType getBrushType() const;
+    int getBrushSize() const;
+    void setBrushSize(int newSize);
+    ~StampToolMenu();
 private slots:
     void onSizeChange(int changedVal);
     void onTypeChange(int index);
@@ -41,11 +43,10 @@ private slots:
 signals :
     void cursorChanged();
 private:
-    QColor pickedColor = Qt::green;
     int size = 15;
-    Ui::BrushToolMenu *ui;
-    BrushShape *brushShape;
+    Ui::StampToolMenu *ui;
     Mode currMode = Over;
+    BrushType currType = Circle;
 };
 
-#endif // BRUSHTOOLMENU_H
+#endif // STAMPTOOLMENU_H

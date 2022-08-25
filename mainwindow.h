@@ -8,7 +8,7 @@
 #include "selecttool.h"
 #include "zoomtool.h"
 #include "pointertool.h"
-
+#include "stamptool.h"
 
 #include <QMainWindow>
 #include <QFileDialog>
@@ -46,6 +46,8 @@ private slots:
     void on_brushButton_clicked();
 
     void on_selectionButton_clicked();
+
+    void on_stampPushButton_clicked();
 
 protected:
     virtual void keyPressEvent(QKeyEvent* ev) override;
