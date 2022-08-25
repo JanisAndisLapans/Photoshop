@@ -19,6 +19,7 @@ public:
     SelectedArea(int width, int height);
     SelectedArea(uchar* selectedArea, int width, int height, long long pixelCount=-1);
     void change(QRect rectAffected, long long pixelCount=-1);
+    void change(long long pixelCount=-1);
     const QImage& getContourImg1() const;
     const QImage& getContourImg2() const;
     uchar* getSelectedArea();
@@ -26,6 +27,7 @@ public:
     void resize(int width, int height);
     long long getPixelCount() const;
     int getSize() const;
+    void unselectAll();
     inline bool isSelected(int x, int y) const
     {
         return selectedArea[x + y*size]==1;

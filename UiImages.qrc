@@ -6,5 +6,6 @@
         <file>resources/paintbrush.png</file>
         <file>resources/selection.png</file>
         <file>resources/stamp.png</file>
+        <file>resources/pointer.png</file>
     </qresource>
 </RCC>

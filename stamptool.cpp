@@ -133,6 +133,7 @@ void StampTool::onMoveMouse(QMouseEvent *eventMove)
         editFrame->drawResizeBall(radius, startMouse);
         return;
     }
+    if(notSampledYet) return;
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& l = *riter;

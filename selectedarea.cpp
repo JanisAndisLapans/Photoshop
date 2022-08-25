@@ -88,11 +88,18 @@ SelectedArea::SelectedArea(uchar* selectedArea,int width, int height, long long 
     if(pixelCount!=-1) this->selectedPixelCount = pixelCount;
     generateImgAnew();
 }
+
 void SelectedArea::change(QRect rectAffected, long long pixelCount)
 {
     if(pixelCount!=-1) this->selectedPixelCount = pixelCount;
     generateImgFast(rectAffected);
 }
+
+void SelectedArea::change(long long pixelCount)
+{
+    change(QRect(0,0,size,size), pixelCount);
+}
+
 const QImage& SelectedArea::getContourImg1() const
 {
     return contour1;
@@ -139,10 +146,18 @@ long long SelectedArea::getPixelCount() const
     return selectedPixelCount;
 }
 
-
 int SelectedArea::getSize() const
 {
     return size;
+}
+
+void SelectedArea::unselectAll()
+{
+    for(auto i = 0; i<size*size;i++)
+    {
+        selectedArea[i] = 0;
+    }
+    generateImgAnew();
 }
 
 SelectedArea::~SelectedArea()

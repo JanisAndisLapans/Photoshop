@@ -36,6 +36,24 @@ QStatusBar{
       <item>
        <layout class="QVBoxLayout" name="leftToolLayout">
         <item>
+         <widget class="QPushButton" name="pushButton_2">
+          <property name="toolTip">
+           <string>Pointer (P)</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	border-image : url(:/icons/resources/pointer.png) 0 0 0 0 stretch stretch;
+	background: rgb(206, 206, 206);
+	border-radius: 10px;
+}
+</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="resizeButton">
           <property name="toolTip">
            <string>Resize (Z)</string>

@@ -93,6 +93,10 @@ void MainWindow::on_stampPushButton_clicked()
     enableTool("stamp");
 }
 
+void MainWindow::on_pushButton_2_clicked()
+{
+   enableTool("pointer");
+}
 
 void MainWindow::keyPressEvent(QKeyEvent* ev)
 {
@@ -113,8 +117,14 @@ void MainWindow::keyPressEvent(QKeyEvent* ev)
         case Qt::Key_M:
             enableTool("move");
             break;
+        case Qt::Key_P:
+            enableTool("pointer");
+            break;
     }
 }
+
+
+
 
 
 

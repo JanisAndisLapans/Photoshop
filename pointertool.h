@@ -6,6 +6,7 @@
 
 #include <QEvent>
 #include <QMouseEvent>
+#include <QStack>
 
 class PointerTool : public EditTool
 {
@@ -17,6 +18,8 @@ public:
 protected:
     virtual bool eventFilter(QObject *obj, QEvent *event) override;
 private:
+    void selectLocation(const QPoint& from);
+
     PointerToolMenu *menu;
 };
 

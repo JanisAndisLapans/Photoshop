@@ -49,6 +49,8 @@ private slots:
 
     void on_stampPushButton_clicked();
 
+    void on_pushButton_2_clicked();
+
 protected:
     virtual void keyPressEvent(QKeyEvent* ev) override;
 private:
