@@ -2,11 +2,12 @@
 #define EDITTOOL_H
 
 #include "layer.h"
-#include "editframe.h"
 
 #include <vector>
 
 using namespace std;
+
+class EditFrame;
 
 class EditTool : public QObject
 {

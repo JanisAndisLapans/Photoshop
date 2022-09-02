@@ -25,22 +25,56 @@ void EditFrame::adjustSize(bool quick)
     auto maxX = -1, maxY = -1;
     for(const auto& l : layers)
     {
-        auto pos = l.getPos();
-        auto xr = static_cast<int>(pos.x() + l.width()*zoom);
-        auto yr = static_cast<int>(pos.y() + l.height()*zoom);
+        auto pos = l->getPos();
+        auto xr = static_cast<int>(pos.x() + l->width()*zoom);
+        auto yr = static_cast<int>(pos.y() + l->height()*zoom);
 
         maxX = max(maxX, xr);
         maxY = max(maxY, yr);
     }
     setMinimumWidth(maxX);
     setMinimumHeight(maxY);
-    //qDebug() << maxX << maxY;
     if(!quick) selectedArea.resize(maxX/zoom, maxY/zoom);
 }
 
-void EditFrame::setImg(QString path)
+void EditFrame::addImages(const QVector<QString>& paths)
 {
-    layers.append(Layer(path, layers.size()));
+    selectedArea.unselectAll();
+    for(const auto& l : layers)
+        if(l->isTransforming()) return;
+    for(auto& l : layers)
+        l->setSelected(false);
+
+
+    QVector<Layer*> transforming;
+    for(const auto& path : paths)
+    {
+        Layer *l = new Layer(path, layers.size());
+        layers.append(l);
+        l->setSelected(true);
+        transforming.append(l);
+    }
+    ttool->startLayerTransform(transforming);
+    prevTool = currTool;
+    enableTool(ttool);
+    adjustSize();
+    update();
+}
+
+void EditFrame::addImg(QString path)
+{
+    selectedArea.unselectAll();
+    for(const auto& l : layers)
+        if(l->isTransforming()) return;
+    for(auto& l : layers)
+        l->setSelected(false);
+
+    auto l = new Layer(path, layers.size());
+    layers.append(l);
+    l->setSelected(true);
+    ttool->startLayerTransform({l});
+    prevTool = currTool;
+    enableTool(ttool);
     adjustSize();
     update();
 }
@@ -58,22 +92,32 @@ void EditFrame::drawResizeBall(int size, const QPoint& resizeBallCenter)
     update();
 }
 
-
 void EditFrame::finishDrawingResizeBall()
 {
     drawingResizeBall = false;
     update();
 }
 
-
 void EditFrame::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
+    bool isTransforming = false;
     for(const auto& l : layers)
     {
-        auto resizedLayer = l;
+        isTransforming = l->isTransforming();
+        if(isTransforming) break;
+    }
+    painter.setPen(Qt::transparent);
+    auto notTransformingForeground = QBrush(QColor(122,122,122,122));
+    for(const auto& l : layers)
+    {
+        auto resizedLayer = *l;
         resizedLayer.setSize(resizedLayer.size()*zoom);
-        painter.drawImage(resizedLayer,l.getImg());
+        painter.drawImage(resizedLayer,l->getImg());
+        if(isTransforming && !l->isTransforming())
+        {
+            painter.fillRect(resizedLayer, notTransformingForeground);
+        }
     }
     if(hasSelectedArea())
     {
@@ -85,9 +129,14 @@ void EditFrame::paintEvent(QPaintEvent *event)
         painter.setBrush(Qt::red);
         painter.drawEllipse(centerResizeBall, resizeBallSize, resizeBallSize);
     }
+    if(isTransforming)
+    {
+        painter.setPen(QPen(Qt::blue,2));
+        painter.drawRect(ttool->getWorkedAreaRect());
+    }
 }
 
-QVector<Layer>* EditFrame::getLayersRef()
+QVector<Layer*>* EditFrame::getLayersRef()
 {
     return &layers;
 }
@@ -149,15 +198,62 @@ void EditFrame::dropEvent(QDropEvent *ev)
         ev->setDropAction(Qt::CopyAction);
         ev->accept();
         static const auto acceptedTypes = QVector<QString>{"png", "jpg", "bmp"};
+
+        QVector<QString> imagesToAdd;
         for(auto& url : ev->mimeData()->urls())
         {
             if(url.isLocalFile() && acceptedTypes.contains(QFileInfo(url.fileName()).completeSuffix()))
             {
-                setImg(url.toLocalFile());
+                imagesToAdd.append(url.toLocalFile());
             }
         }
+        addImages(imagesToAdd);
     }
+}
 
+void EditFrame::setTransformTool(TransformTool* tool)
+{
+    this->ttool = tool;
+    connect(tool, SIGNAL(endTransform()), this, SLOT(onEndTransform()));
 }
 
 
+void EditFrame::enableTool(EditTool* tool)
+{
+    if(tool != ttool) ttool->terminateTransform();
+
+    if(currTool!=nullptr)
+    {
+        currTool->getMenu()->setVisible(false);
+        removeEventFilter(currTool);
+    }
+    currTool = tool;
+    currTool->getMenu()->setVisible(true);
+    currTool->setCursor();
+    installEventFilter(currTool);
+}
+
+void EditFrame::onEndTransform()
+{
+    enableTool(prevTool);
+}
+
+void EditFrame::keyPressEvent(QKeyEvent* event)
+{
+    if(currTool == ttool) return;
+
+    if(event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_T)
+    {
+        QVector<Layer*> layersToTransform;
+        for(auto layer : layers)
+        {
+            if(layer->isSelected())
+            {
+                layersToTransform.append(layer);
+            }
+        }
+        ttool->startLayerTransform(layersToTransform);
+        prevTool = currTool;
+        enableTool(ttool);
+    }
+}

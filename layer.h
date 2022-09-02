@@ -9,9 +9,10 @@
 
 class Layer : public QRect
 {
+
 public:
     Layer(const QPoint& pos = QPoint(0,0));
-    Layer(const QString& path, int rank , const QPoint& pos = QPoint(0,0));
+    Layer(const QString& path, int rank, const QPoint& pos = QPoint(0,0));
     void setPos(const QPoint& pos);
     QPoint getPos() const;
     QString getName() const;
@@ -19,10 +20,20 @@ public:
     QImage getImg() const;
     int getRank() const;
     void setRank(int rank);
+    void resize(uint w, uint height);
+    bool isTransforming() const;
+    void setTransforming(bool state);
+    bool isSelected() const;
+    void setSelected(bool state);
+    QWidget* getTransformToolMenu();
+
 private:
     QImage  *img;
     QString name;
     int rank;
+    bool transforming = false;
+    bool selected = false;
+
 };
 
 #endif // LAYER_H

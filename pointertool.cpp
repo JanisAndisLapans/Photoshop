@@ -1,4 +1,5 @@
 #include "pointertool.h"
+#include "editframe.h"
 
 PointerTool::PointerTool(EditFrame* editFrame)
     :EditTool(editFrame)
@@ -50,6 +51,7 @@ bool PointerTool::eventFilter(QObject *obj, QEvent *event)
     switch(event->type())
     {
         case QEvent::MouseButtonDblClick:
+            if(!editFrame->hasSelectedArea()) break;
             editFrame->getSelectedAreaRef()->unselectAll();
             editFrame->update();
             break;
@@ -57,7 +59,7 @@ bool PointerTool::eventFilter(QObject *obj, QEvent *event)
             auto pos = dynamic_cast<QMouseEvent*>(event)->pos()/editFrame->getZoom();
             if(editFrame->getSelectedAreaRef()->isSelected(pos.x(),pos.y()))
                 selectLocation(pos);
-                break;
+            break;
     }
     return QObject::eventFilter(obj, event);
 }

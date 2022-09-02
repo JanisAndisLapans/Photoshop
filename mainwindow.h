@@ -9,6 +9,7 @@
 #include "zoomtool.h"
 #include "pointertool.h"
 #include "stamptool.h"
+#include "transformtool.h"
 
 #include <QMainWindow>
 #include <QFileDialog>
@@ -50,15 +51,12 @@ private slots:
     void on_stampPushButton_clicked();
 
     void on_pushButton_2_clicked();
-
 protected:
     virtual void keyPressEvent(QKeyEvent* ev) override;
 private:
-    void enableTool(const string& name);
 
     Ui::MainWindow *ui;
     QColor pickedColor = Qt::green;
     unordered_map<string,EditTool*> tools;
-    EditTool *currTool;
 };
 #endif // MAINWINDOW_H

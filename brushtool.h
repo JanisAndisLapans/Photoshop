@@ -21,7 +21,7 @@ class BrushTool : public EditTool
 {
     Q_OBJECT
 public:
-    BrushTool(EditFrame *editFrame, QVector<Layer>* layers);
+    BrushTool(EditFrame *editFrame, QVector<Layer*>* layers);
     virtual BrushToolMenu* getMenu() override;
     virtual void setCursor() override;
 protected:
@@ -38,7 +38,7 @@ private:
     void drawPixels(const QPoint& pos, const QPoint& realPos, QImage* img, const QImage& brushImg);
     void adjustCursor();
     bool mouseDown = false;
-    QVector<Layer>* layers;
+    QVector<Layer*>* layers;
     BrushToolMenu *menu;
     bool dragResizing = false;
     QPoint startMouse;

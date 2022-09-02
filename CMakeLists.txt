@@ -48,6 +48,9 @@ set(PROJECT_SOURCES
         stamptool.cpp
         stamptoolmenu.cpp
         stamptoolmenu.ui
+        transformtool.cpp
+        transformtoolmenu.cpp
+        transformtoolmenu.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

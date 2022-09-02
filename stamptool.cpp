@@ -1,6 +1,8 @@
 #include "stamptool.h"
+#include "editframe.h"
 
-StampTool::StampTool(EditFrame *editFrame, QVector<Layer>* layers)
+
+StampTool::StampTool(EditFrame *editFrame, QVector<Layer*>* layers)
     :EditTool(editFrame), layers(layers)
 {
     menu = new StampToolMenu();
@@ -72,10 +74,10 @@ void StampTool::sampleAnew(const QPoint& point)
     QPainter painter(&srcArea);
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
-        auto& l = *riter;
-        if(l.contains(point))
+        auto l = *riter;
+        if(l->contains(point))
         {
-            painter.drawImage(l.getPos(), l.getImg());
+            painter.drawImage(l->getPos(), l->getImg());
             break;
         }
     }
@@ -113,8 +115,8 @@ void StampTool::onDownMouse(QMouseEvent *eventPress)
     memset(drawnArea, false, areaSize*areaSize);
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
-        auto& l = *riter;
-        if(draw(l,  eventPress->pos()))
+        auto l = *riter;
+        if(draw(*l,  eventPress->pos()))
         {
             prevMouse = eventPress->pos();
             editFrame->update();
@@ -136,8 +138,8 @@ void StampTool::onMoveMouse(QMouseEvent *eventMove)
     if(notSampledYet) return;
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
-        auto& l = *riter;
-        if(draw(l, eventMove->pos()))
+        auto l = *riter;
+        if(draw(*l, eventMove->pos()))
         {
             samplePos += (eventMove->pos() - prevMouse)/editFrame->getZoom();
             sampleInDraw(samplePos);

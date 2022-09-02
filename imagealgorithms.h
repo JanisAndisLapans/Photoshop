@@ -1,7 +1,13 @@
 #ifndef IMAGEALGORITHMS_H
 #define IMAGEALGORITHMS_H
 
+#include <cmath>
+#include <utility>
+
 #include <QColor>
+#include <QPoint>
+
+using namespace std;
 
 namespace ImageAlgorithms
 {
@@ -67,6 +73,11 @@ namespace ImageAlgorithms
         uchar B = 255 - (255-qBlue(dest)) * (255-qBlue(src))/255;
         uchar A = 255 - (255-qAlpha(dest)) * (255-qAlpha(src))/255;
         return qRgba(R,G,B,A);
+    }
+
+    inline int pointDistance(const QPoint& p1, const QPoint& p2)
+    {
+        return sqrt(abs(p1.x()-p2.x())*abs(p1.x()-p2.x())+abs(p1.y()-p2.y())*abs(p1.y()-p2.y()));
     }
 }
 

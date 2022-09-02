@@ -14,7 +14,7 @@ using namespace std;
 class LayerBox : public QWidget
 {
 public:
-    LayerBox(const Layer& layer, QWidget *parent = nullptr);
+    LayerBox(const Layer* layer, QWidget *parent = nullptr);
 private:
     QLabel *name, *image;
     const Layer& layer;

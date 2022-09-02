@@ -20,7 +20,7 @@ class StampTool : public EditTool
 {
     Q_OBJECT
 public:
-    StampTool(EditFrame *editFrame, QVector<Layer>* layers);
+    StampTool(EditFrame *editFrame, QVector<Layer*>* layers);
     virtual StampToolMenu* getMenu() override;
     virtual void setCursor() override;
 protected:
@@ -42,7 +42,7 @@ private:
     void drawPixels(const QPoint& pos, const QPoint& realPos, QImage* img, const QImage& brushImg);
     void adjustCursor();
     bool mouseDown = false;
-    QVector<Layer>* layers;
+    QVector<Layer*>* layers;
     StampToolMenu *menu;
     BrushShape *brushShape = nullptr;
     bool notSampledYet = true;

@@ -1,6 +1,7 @@
 #include "brushtool.h"
+#include "editframe.h"
 
-BrushTool::BrushTool(EditFrame *editFrame, QVector<Layer>* layers)
+BrushTool::BrushTool(EditFrame *editFrame, QVector<Layer*>* layers)
     :EditTool(editFrame), layers(layers)
 {
     menu = new BrushToolMenu();
@@ -78,7 +79,7 @@ void BrushTool::onDownMouse(QMouseEvent *eventPress)
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& l = *riter;
-        if(draw(l, currPos)) break;
+        if(draw(*l, currPos)) break;
     }
     editFrame->update();
 }
@@ -97,7 +98,7 @@ void BrushTool::onMoveMouse(QMouseEvent *eventMove)
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& l = *riter;
-        if(draw(l, currPos)) break;
+        if(draw(*l, currPos)) break;
     }
     editFrame->update();
 }

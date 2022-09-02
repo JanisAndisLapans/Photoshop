@@ -1,4 +1,6 @@
 #include "zoomtool.h"
+#include "editframe.h"
+
 
 ZoomTool::ZoomTool(EditFrame* editFrame)
    : EditTool(editFrame)

@@ -12,7 +12,7 @@
 class MoveTool : public EditTool
 {
 public:
-    MoveTool(EditFrame *editFrame, QVector<Layer>* layers);
+    MoveTool(EditFrame *editFrame, QVector<Layer*>* layers);
     virtual MoveToolMenu* getMenu() override;
     virtual void setCursor() override;
 protected:
@@ -25,7 +25,7 @@ private:
     bool mouseDown = false;
     QPoint startMouse;
     Layer* currMoving = nullptr;
-    QVector<Layer>* layers;
+    QVector<Layer*>* layers;
     MoveToolMenu* menu;
 };
 

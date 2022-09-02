@@ -3,10 +3,13 @@
 
 #include "layer.h"
 #include "selectedarea.h"
+#include "edittool.h"
+#include "transformtool.h"
 
 #include <memory>
 #include <cmath>
 #include <algorithm>
+#include <iterator>
 
 #include <QFrame>
 #include <QPainter>
@@ -23,29 +26,34 @@ using namespace std;
 
 class EditFrame : public QFrame
 {
+    Q_OBJECT
 public:
     EditFrame(QWidget *parent = nullptr);
-    void setImg(QString path);
+    void addImg(QString path);
+    void addImages(const QVector<QString>& paths);
     virtual void paintEvent(QPaintEvent * event) override;
     void adjustSize(bool quick=false);
     double getZoom() const;
     void changeZoom(double amount);
-    QVector<Layer>* getLayersRef();
+    QVector<Layer*>* getLayersRef();
     SelectedArea* getSelectedAreaRef();
     bool hasSelectedArea() const;
     void lookAt(QPoint point);
     void setScrollArea(QScrollArea *scrollArea);
     void drawResizeBall(int size, const QPoint& resizeBallCenter);
     void finishDrawingResizeBall();
+    void enableTool(EditTool* tool);
+    void setTransformTool(TransformTool* tool);
 
 protected:
     virtual void mouseMoveEvent(QMouseEvent * ev) override;
     virtual void dragEnterEvent(QDragEnterEvent *ev) override;
     virtual void dragMoveEvent(QDragMoveEvent *ev) override;
     virtual void dropEvent(QDropEvent *ev) override;
+    virtual void keyPressEvent(QKeyEvent* event) override;
 
 private:
-     QVector<Layer> layers;
+     QVector<Layer*> layers;
      double zoom = 1.0;
      SelectedArea selectedArea;
      bool selectedAreaDisplayState = false;
@@ -53,10 +61,14 @@ private:
      int resizeBallSize;
      QPoint centerResizeBall;
      bool drawingResizeBall = false;
+     EditTool* currTool = nullptr;
+     EditTool* prevTool;
+     TransformTool* ttool;     
 
 private slots:
      void selectionDisplaySwitch();
+     void onEndTransform();
 
-    };
+};
 
 #endif // EDITFRAME_H

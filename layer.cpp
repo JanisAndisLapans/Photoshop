@@ -23,7 +23,7 @@ QPoint Layer::getPos() const
 
 void Layer::setPos(const QPoint& pos)
 {
-    setRect(pos.x(), pos.y(), size().width(), size().height());
+    translate(pos-topLeft());
 }
 
 QString Layer::getName() const
@@ -49,4 +49,23 @@ int Layer::getRank() const
 void Layer::setRank(int rank)
 {
     this->rank = rank;
+}
+
+bool Layer::isTransforming() const
+{
+    return transforming;
+}
+
+void Layer::setTransforming(bool state)
+{
+    transforming = state;
+}
+
+bool Layer::isSelected() const
+{
+    return selected;
+}
+void Layer::setSelected(bool state)
+{
+    selected = state;
 }

@@ -1,6 +1,7 @@
 #include "movetool.h"
+#include "editframe.h"
 
-MoveTool::MoveTool(EditFrame *editFrame, QVector<Layer>* layers)
+MoveTool::MoveTool(EditFrame *editFrame, QVector<Layer*>* layers)
     :EditTool(editFrame), layers(layers)
 {
     menu = new MoveToolMenu();
@@ -13,11 +14,11 @@ void MoveTool::onDownMouse(QMouseEvent *eventPress)
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& layer = *riter;
-        auto rect = QRect(layer);
+        auto rect = QRect(*layer);
         rect.setSize(rect.size() * editFrame->getZoom());
         if(rect.contains(eventPress->pos()))
         {
-            currMoving = &layer;
+            currMoving = layer;
             break;
         }
     }

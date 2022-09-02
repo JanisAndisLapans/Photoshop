@@ -23,7 +23,7 @@ class SelectTool : public EditTool
 {
     Q_OBJECT
 public:
-    SelectTool(EditFrame *editFrame, QVector<Layer>* layers);
+    SelectTool(EditFrame *editFrame, QVector<Layer*>* layers);
     virtual selectToolMenu* getMenu() override;
     virtual void setCursor() override;
 
@@ -43,7 +43,7 @@ private:
     bool mouseDown = false;
     QPoint startMouse;
     SelectedArea *selectedArea;
-    QVector<Layer>* layers;
+    QVector<Layer*>* layers;
     selectToolMenu *menu;
     bool isAdd = true;
     bool dragResizing = false;

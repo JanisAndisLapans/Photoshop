@@ -30,7 +30,7 @@ public:
     void unselectAll();
     inline bool isSelected(int x, int y) const
     {
-        return selectedArea[x + y*size]==1;
+        return x + y*size<=size*size ? selectedArea[x + y*size]==1 : false;
     }
     ~SelectedArea();
 private:

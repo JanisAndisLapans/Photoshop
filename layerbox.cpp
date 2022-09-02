@@ -1,7 +1,7 @@
 #include "layerbox.h"
 
 LayerBox::LayerBox(const Layer& layer, QWidget *parent)
-    :QWidget(parent), layer(layer)
+    :QWidget(parent), layer(layer), edit
 {
     name = new QLabel(layer.getName());
     image = new QLabel();

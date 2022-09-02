@@ -157,6 +157,7 @@ void SelectedArea::unselectAll()
     {
         selectedArea[i] = 0;
     }
+    selectedPixelCount = 0;
     generateImgAnew();
 }
 

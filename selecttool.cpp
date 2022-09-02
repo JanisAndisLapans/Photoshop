@@ -1,7 +1,7 @@
 #include "selecttool.h"
 #include "editframe.h"
 
-SelectTool::SelectTool(EditFrame *editFrame, QVector<Layer> *layers)
+SelectTool::SelectTool(EditFrame *editFrame, QVector<Layer*> *layers)
     :EditTool(editFrame), selectedArea(editFrame->getSelectedAreaRef()), layers(layers)
 {
     menu = new selectToolMenu();
@@ -20,13 +20,13 @@ void SelectTool::onDownMouse(QMouseEvent *eventPress)
     auto currPos = eventPress->pos();
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
-        auto& l = *riter;
-        if(l.contains(currPos))
+        auto l = *riter;
+        if(l->contains(currPos))
         {
             if(!isAdd){
-                makeDeselectionAt(currPos/editFrame->getZoom(), l.getImg(), l.getPos());
+                makeDeselectionAt(currPos/editFrame->getZoom(), l->getImg(), l->getPos());
             }else{
-                makeSelectionAt(currPos/editFrame->getZoom(), l.getImg(), l.getPos());
+                makeSelectionAt(currPos/editFrame->getZoom(), l->getImg(), l->getPos());
             }break;
         }
     }
@@ -44,13 +44,13 @@ void SelectTool::onMoveMouse(QMouseEvent *eventMove)
     }
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
-        auto& l = *riter;
-        if(l.contains(currPos))
+        auto l = *riter;
+        if(l->contains(currPos))
         {
             if(!isAdd)
-                makeDeselectionAt(currPos/editFrame->getZoom(), l.getImg(), l.getPos());
+                makeDeselectionAt(currPos/editFrame->getZoom(), l->getImg(), l->getPos());
             else
-                makeSelectionAt(currPos/editFrame->getZoom(), l.getImg(), l.getPos());
+                makeSelectionAt(currPos/editFrame->getZoom(), l->getImg(), l->getPos());
             break;
         }
     }
