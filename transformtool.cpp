@@ -32,7 +32,7 @@ bool TransformTool::eventFilter(QObject *obj, QEvent *event)
             break;
         case QEvent::MouseButtonRelease:
             onReleaseMouse(dynamic_cast<QMouseEvent*>(event));
-            break;
+            break;    
     }
     return QObject::eventFilter(obj, event);
 }
@@ -51,6 +51,7 @@ void TransformTool::startLayerTransform(const QVector<Layer*>& layers)
     transformingRect.setBottom(maxBot);
     transformingRect.setRight(maxRight);
     originalTransformingRect = transformingRect;
+    currType = Resize;
     for(auto& l : layers)
     {
         l->setTransforming(true);
@@ -61,9 +62,9 @@ void TransformTool::startLayerTransform(const QVector<Layer*>& layers)
 
 void TransformTool::onReleaseMouse(QMouseEvent *event)
 {
-    if(resizing)
+    if(transforming)
     {
-        resizing = false;
+        transforming = false;
         editFrame->adjustSize();
         originalTransformingRect = transformingRect;
         for(auto& layer : transformingLayers)
@@ -74,72 +75,127 @@ void TransformTool::onReleaseMouse(QMouseEvent *event)
 }
 void TransformTool::onDownMouse(QMouseEvent *event)
 {
-    if(resizingAvailable)
+    if(event->button() == Qt::RightButton)
     {
-        resizing = true;
+        QMenu contextMenu("Action type", editFrame);
+
+        QAction action1("Resize", editFrame);
+        connect(&action1, SIGNAL(triggered()), this, SLOT(onChooseResize()));
+        contextMenu.addAction(&action1);
+        QAction action2("Move", editFrame);
+        connect(&action2, SIGNAL(triggered()), this, SLOT(onChooseMove()));
+        contextMenu.addAction(&action2);
+        QAction action3("Rotate", editFrame);
+        connect(&action3, SIGNAL(triggered()), this, SLOT(onChooseRotate()));
+        contextMenu.addAction(&action3);
+
+        contextMenu.exec(QCursor::pos());
+        return;
+    }
+    if(transformingAvailable)
+    {
+        startMouse = event->pos();
+        transforming = true;
     }
 }
 
 void TransformTool::onMoveMouse(QMouseEvent *event)
 {
-    if(!resizing)
-    {
-        auto pos = event->pos()/editFrame->getZoom();
-        auto activateTreshhold = 10/editFrame->getZoom();
-        if(ImageAlgorithms::pointDistance(pos, transformingRect.topLeft()) < activateTreshhold)
-        {
-            currResizeMethod = bind(&TransformTool::topLeftResize, this, _1);
-            editFrame->setCursor(Qt::SizeFDiagCursor);
-        }
-        else if(ImageAlgorithms::pointDistance(pos, transformingRect.topRight()) < activateTreshhold)
-        {
-            currResizeMethod = bind(&TransformTool::topRightResize, this, _1);
-            editFrame->setCursor(Qt::SizeBDiagCursor);
-        }
-        else if(ImageAlgorithms::pointDistance(pos, transformingRect.bottomLeft())  < activateTreshhold)
-        {
-            currResizeMethod = bind(&TransformTool::bottomLeftResize, this, _1);
-            editFrame->setCursor(Qt::SizeBDiagCursor);
-        }
-        else if(ImageAlgorithms::pointDistance(pos, transformingRect.bottomRight())  < activateTreshhold)
-        {
-            currResizeMethod = bind(&TransformTool::bottomRightResize, this, _1);
-            editFrame->setCursor(Qt::SizeFDiagCursor);
-        }
-        else if(abs(event->pos().x() - transformingRect.left()) < activateTreshhold)
-        {
-            currResizeMethod = bind(&TransformTool::leftResize, this, _1);
-            editFrame->setCursor(Qt::SizeHorCursor);
-        }
-        else if(abs(event->pos().x() - transformingRect.right()) < activateTreshhold)
-        {
-            currResizeMethod = bind(&TransformTool::rightResize, this, _1);
-            editFrame->setCursor(Qt::SizeHorCursor);
-        }
-        else if(abs(event->pos().y() - transformingRect.top()) < activateTreshhold)
-        {
-            currResizeMethod = bind(&TransformTool::topResize, this, _1);
-            editFrame->setCursor(Qt::SizeVerCursor);
-        }
-        else if(abs(event->pos().y() - transformingRect.bottom()) < activateTreshhold)
-        {
-            currResizeMethod = bind(&TransformTool::bottomResize, this, _1);
-            editFrame->setCursor(Qt::SizeVerCursor);
-        }
-        else
-        {
-            resizingAvailable = false;
-            editFrame->setCursor(Qt::ArrowCursor);
-            return;
-        }
-        resizingAvailable = true;
-    }
-    else
-    {
-        currResizeMethod(event->pos());;
-        editFrame->lookAt(event->pos());
-        editFrame->adjustSize(true);
-        editFrame->update();
+    switch(currType){
+        case Resize:
+            if(!transforming)
+            {
+                auto pos = event->pos()/editFrame->getZoom();
+                auto activateTreshhold = 10/editFrame->getZoom();
+                if(ImageAlgorithms::pointDistance(pos, transformingRect.topLeft()) < activateTreshhold)
+                {
+                    currResizeMethod = bind(&TransformTool::topLeftResize, this, _1);
+                    editFrame->setCursor(Qt::SizeFDiagCursor);
+                }
+                else if(ImageAlgorithms::pointDistance(pos, transformingRect.topRight()) < activateTreshhold)
+                {
+                    currResizeMethod = bind(&TransformTool::topRightResize, this, _1);
+                    editFrame->setCursor(Qt::SizeBDiagCursor);
+                }
+                else if(ImageAlgorithms::pointDistance(pos, transformingRect.bottomLeft())  < activateTreshhold)
+                {
+                    currResizeMethod = bind(&TransformTool::bottomLeftResize, this, _1);
+                    editFrame->setCursor(Qt::SizeBDiagCursor);
+                }
+                else if(ImageAlgorithms::pointDistance(pos, transformingRect.bottomRight())  < activateTreshhold)
+                {
+                    currResizeMethod = bind(&TransformTool::bottomRightResize, this, _1);
+                    editFrame->setCursor(Qt::SizeFDiagCursor);
+                }
+                else if(abs(event->pos().x() - transformingRect.left()) < activateTreshhold)
+                {
+                    currResizeMethod = bind(&TransformTool::leftResize, this, _1);
+                    editFrame->setCursor(Qt::SizeHorCursor);
+                }
+                else if(abs(event->pos().x() - transformingRect.right()) < activateTreshhold)
+                {
+                    currResizeMethod = bind(&TransformTool::rightResize, this, _1);
+                    editFrame->setCursor(Qt::SizeHorCursor);
+                }
+                else if(abs(event->pos().y() - transformingRect.top()) < activateTreshhold)
+                {
+                    currResizeMethod = bind(&TransformTool::topResize, this, _1);
+                    editFrame->setCursor(Qt::SizeVerCursor);
+                }
+                else if(abs(event->pos().y() - transformingRect.bottom()) < activateTreshhold)
+                {
+                    currResizeMethod = bind(&TransformTool::bottomResize, this, _1);
+                    editFrame->setCursor(Qt::SizeVerCursor);
+                }
+                else
+                {
+                    transformingAvailable = false;
+                    editFrame->setCursor(Qt::ArrowCursor);
+                    return;
+                }
+                transformingAvailable = true;
+            }
+            else
+            {
+                currResizeMethod(event->pos());;
+                editFrame->lookAt(event->pos());
+                editFrame->adjustSize(true);
+                editFrame->update();
+            }
+            break;
+        case Move:
+            if(!transforming)
+            {
+                if(transformingRect.contains(event->pos()))
+                {
+                    editFrame->setCursor(Qt::SizeAllCursor);
+                    transformingAvailable = true;
+                }
+                else
+                {
+                    editFrame->setCursor(Qt::ArrowCursor);
+                    transformingAvailable = false;
+                }
+            }
+            else
+            {
+                auto dif = event->pos() - startMouse;
+                startMouse = event->pos();
+                for(auto& layer : transformingLayers)
+                {
+                    auto newPos = layer.layer->getPos() + dif;
+                    newPos.setX(max(newPos.x(),0));
+                    newPos.setY(max(newPos.y(),0));
+                    layer.layer->setPos(newPos);
+                }
+                auto newPos = transformingRect.topLeft() + dif;
+                newPos.setX(max(newPos.x(),0));
+                newPos.setY(max(newPos.y(),0));
+                transformingRect.translate(newPos - transformingRect.topLeft());
+                editFrame->adjustSize(true);
+                editFrame->update();
+            }
+            break;
     }
 }
 
@@ -346,4 +402,17 @@ void TransformTool::onFinish()
 void TransformTool::terminateTransform()
 {
     stopTransform();
+}
+
+void TransformTool::onChooseRotate()
+{
+    currType = Rotate;
+}
+void TransformTool::onChooseMove()
+{
+    currType = Move;
+}
+void TransformTool::onChooseResize()
+{
+    currType = Resize;
 }

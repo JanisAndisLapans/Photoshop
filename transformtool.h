@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <utility>
+#include <QMenu>
 
 
 using namespace std;
@@ -49,19 +50,29 @@ private:
         QRect resizingBase;
     };
 
+    enum TransformType
+    {
+       Resize, Move, Rotate
+    };
+
     function<void(const QPoint&)> currResizeMethod;
-    bool resizing = false;
-    bool resizingAvailable = false;
+    bool transforming = false;
+    bool transformingAvailable = false;
     QRect transformingRect, originalTransformingRect;
     QPoint startMouse;
     QVector<LayerInfo> transformingLayers = QVector<LayerInfo>();
 
     QVector<QRect> oldRects;
     TransformToolMenu *menu;
+    TransformType currType;
 
 private slots:
     void onCancel();
     void onFinish();
+
+    void onChooseResize();
+    void onChooseRotate();
+    void onChooseMove();
 
 signals:
     void endTransform();
