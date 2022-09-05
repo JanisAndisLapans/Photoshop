@@ -3,6 +3,10 @@
 
 #include <QWidget>
 
+#include <cmath>
+
+using namespace std;
+
 namespace Ui {
 class TransformToolMenu;
 }
@@ -14,6 +18,7 @@ class TransformToolMenu : public QWidget
 public:
     explicit TransformToolMenu(QWidget *parent = nullptr);
     ~TransformToolMenu();
+    void setRotation(double degrees);
 
 private:
     Ui::TransformToolMenu *ui;
@@ -21,10 +26,12 @@ private:
 private slots:
     void onEndTransformButtonPress();
     void onCancelTransformButtonPress();
+    void onRotationChanged(double degrees);
 
 signals:
     void finishTransform();
     void cancelTransform();
+    void rotated(double degrees);
 
 };
 

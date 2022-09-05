@@ -8,6 +8,7 @@ TransformTool::TransformTool(EditFrame* editFrame)
     menu = new TransformToolMenu();
     connect(menu, SIGNAL(cancelTransform()), this, SLOT(onCancel()));
     connect(menu, SIGNAL(finishTransform()), this, SLOT(onFinish()));
+    connect(menu, SIGNAL(rotated(double)), this, SLOT(onRotationChanged(double)));
 }
 
 TransformToolMenu* TransformTool::getMenu()
@@ -51,6 +52,8 @@ void TransformTool::startLayerTransform(const QVector<Layer*>& layers)
     transformingRect.setBottom(maxBot);
     transformingRect.setRight(maxRight);
     originalTransformingRect = transformingRect;
+    transformingRectRotation = 0.0;
+    menu->setRotation(0.0);
     currType = Resize;
     for(auto& l : layers)
     {
@@ -70,6 +73,10 @@ void TransformTool::onReleaseMouse(QMouseEvent *event)
         for(auto& layer : transformingLayers)
         {
             layer.resizingBase = *layer.layer;
+        }
+        for(auto layer : transformingLayers)
+        {
+            layer.layer->setTransforming(true);
         }
     }
 }
@@ -94,19 +101,33 @@ void TransformTool::onDownMouse(QMouseEvent *event)
     }
     if(transformingAvailable)
     {
-        startMouse = event->pos();
         transforming = true;
+        if(currType == Rotate)
+        {
+            startMouse = event->pos()/editFrame->getZoom();
+            for(auto layer : transformingLayers)
+            {
+                layer.layer->setTransforming(true);
+                layer.prevRotation = layer.layer->getRotationDegrees();
+            }
+            prevRotation = transformingRectRotation;
+        }
+        else if(currType == Move)
+        {
+            startMouse = event->pos();
+        }
     }
 }
 
 void TransformTool::onMoveMouse(QMouseEvent *event)
 {
+    auto posNoZoom = event->pos() / editFrame->getZoom();
+    auto pos = ImageAlgorithms::rotatePos(posNoZoom, transformingRectRotation, transformingRect.center());
     switch(currType){
         case Resize:
             if(!transforming)
             {
-                auto pos = event->pos()/editFrame->getZoom();
-                auto activateTreshhold = 10/editFrame->getZoom();
+                auto activateTreshhold = 10;
                 if(ImageAlgorithms::pointDistance(pos, transformingRect.topLeft()) < activateTreshhold)
                 {
                     currResizeMethod = bind(&TransformTool::topLeftResize, this, _1);
@@ -127,22 +148,22 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
                     currResizeMethod = bind(&TransformTool::bottomRightResize, this, _1);
                     editFrame->setCursor(Qt::SizeFDiagCursor);
                 }
-                else if(abs(event->pos().x() - transformingRect.left()) < activateTreshhold)
+                else if(abs(pos.x() - transformingRect.left()) < activateTreshhold)
                 {
                     currResizeMethod = bind(&TransformTool::leftResize, this, _1);
                     editFrame->setCursor(Qt::SizeHorCursor);
                 }
-                else if(abs(event->pos().x() - transformingRect.right()) < activateTreshhold)
+                else if(abs(pos.x() - transformingRect.right()) < activateTreshhold)
                 {
                     currResizeMethod = bind(&TransformTool::rightResize, this, _1);
                     editFrame->setCursor(Qt::SizeHorCursor);
                 }
-                else if(abs(event->pos().y() - transformingRect.top()) < activateTreshhold)
+                else if(abs(pos.y() - transformingRect.top()) < activateTreshhold)
                 {
                     currResizeMethod = bind(&TransformTool::topResize, this, _1);
                     editFrame->setCursor(Qt::SizeVerCursor);
                 }
-                else if(abs(event->pos().y() - transformingRect.bottom()) < activateTreshhold)
+                else if(abs(pos.y() - transformingRect.bottom()) < activateTreshhold)
                 {
                     currResizeMethod = bind(&TransformTool::bottomResize, this, _1);
                     editFrame->setCursor(Qt::SizeVerCursor);
@@ -157,7 +178,7 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
             }
             else
             {
-                currResizeMethod(event->pos());;
+                currResizeMethod(pos);
                 editFrame->lookAt(event->pos());
                 editFrame->adjustSize(true);
                 editFrame->update();
@@ -166,7 +187,7 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
         case Move:
             if(!transforming)
             {
-                if(transformingRect.contains(event->pos()))
+                if(transformingRect.contains(pos))
                 {
                     editFrame->setCursor(Qt::SizeAllCursor);
                     transformingAvailable = true;
@@ -193,6 +214,63 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
                 newPos.setY(max(newPos.y(),0));
                 transformingRect.translate(newPos - transformingRect.topLeft());
                 editFrame->adjustSize(true);
+                editFrame->update();
+            }
+            break;
+        case Rotate:
+            auto activateTreshhold = 30/editFrame->getZoom();
+            if(!transforming)
+            {
+               if(abs(pos.x() - transformingRect.left()) < activateTreshhold)
+               {
+                   editFrame->setCursor(clockwiseRotateCursor);
+                   rdir = clockwise;
+                   rotatedAxis = y;
+               }
+               else if(abs(pos.x() - transformingRect.right()) < activateTreshhold)
+               {
+                   editFrame->setCursor(anticlockwiseRotateCursor);
+                   rdir = anticlockwise;
+                   rotatedAxis = y;
+               }
+               else if(abs(pos.y() - transformingRect.top()) < activateTreshhold)
+               {
+                   editFrame->setCursor(clockwiseRotateCursor);
+                   rdir = anticlockwise;
+                   rotatedAxis = x;
+               }
+               else if(abs(pos.y() - transformingRect.bottom()) < activateTreshhold)
+               {
+                   editFrame->setCursor(anticlockwiseRotateCursor);
+                   rdir = anticlockwise;
+                   rotatedAxis = x;
+               }
+               else
+               {
+                   transformingAvailable = false;
+                   editFrame->setCursor(Qt::ArrowCursor);
+                   return;
+               }
+               transformingAvailable = true;
+            }
+            else
+            {
+                qreal rotationAdded = 0;
+                auto vector = (startMouse - posNoZoom)*rdir;
+                if(rotatedAxis == x)
+                {
+                    rotationAdded = 90.0*(static_cast<qreal>(vector.x())/transformingRect.width());
+                }
+                else if(rotatedAxis == y)
+                {
+                    rotationAdded = 90.0*(static_cast<qreal>(vector.y())/transformingRect.height());
+                }
+                transformingRectRotation = prevRotation + rotationAdded;
+                menu->setRotation(transformingRectRotation);
+                for(auto& layer : transformingLayers)
+                {
+                    layer.layer->setRotationDegress(layer.original.getRotationDegrees() + transformingRectRotation);
+                }
                 editFrame->update();
             }
             break;
@@ -368,6 +446,7 @@ void TransformTool::bottomResize(QPoint pos)
     }
 }
 
+
 const QRect& TransformTool::getWorkedAreaRect() const
 {
     return transformingRect;
@@ -398,7 +477,6 @@ void TransformTool::onFinish()
     emit endTransform();
 }
 
-
 void TransformTool::terminateTransform()
 {
     stopTransform();
@@ -415,4 +493,19 @@ void TransformTool::onChooseMove()
 void TransformTool::onChooseResize()
 {
     currType = Resize;
+}
+
+qreal TransformTool::getWorkedAreaRectRotation() const
+{
+    return transformingRectRotation;
+}
+
+void TransformTool::onRotationChanged(double degrees)
+{
+    transformingRectRotation = degrees;
+    for(auto& layer : transformingLayers)
+    {
+        layer.layer->setRotationDegress(layer.original.getRotationDegrees() + degrees);
+    }
+    editFrame->update();
 }

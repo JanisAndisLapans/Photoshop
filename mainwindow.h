@@ -53,6 +53,7 @@ private slots:
     void on_pushButton_2_clicked();
 protected:
     virtual void keyPressEvent(QKeyEvent* ev) override;
+    virtual bool eventFilter(QObject* obj, QEvent* event) override;
 private:
 
     Ui::MainWindow *ui;

@@ -113,11 +113,17 @@ void EditFrame::paintEvent(QPaintEvent *event)
     {
         auto resizedLayer = *l;
         resizedLayer.setSize(resizedLayer.size()*zoom);
+        auto xc = resizedLayer.width() * 0.5  + resizedLayer.topLeft().x();
+        auto yc = resizedLayer.height() * 0.5 + resizedLayer.topLeft().y();
+        painter.translate(xc, yc);
+        painter.rotate(l->getRotationDegrees());
+        resizedLayer.translate(QPoint(-xc, -yc));
         painter.drawImage(resizedLayer,l->getImg());
         if(isTransforming && !l->isTransforming())
         {
             painter.fillRect(resizedLayer, notTransformingForeground);
         }
+        painter.resetTransform();
     }
     if(hasSelectedArea())
     {
@@ -131,8 +137,16 @@ void EditFrame::paintEvent(QPaintEvent *event)
     }
     if(isTransforming)
     {
+        auto rect =  ttool->getWorkedAreaRect();
+        rect.setSize(rect.size()*zoom);
+        auto xc = rect.width() * 0.5 + rect.topLeft().x();
+        auto yc = rect.height() * 0.5 + rect.topLeft().y();
+        painter.translate(xc, yc);
+        painter.rotate(ttool->getWorkedAreaRectRotation());
+        rect.translate(QPoint(-xc, -yc));
         painter.setPen(QPen(Qt::blue,2));
-        painter.drawRect(ttool->getWorkedAreaRect());
+        painter.drawRect(rect);
+        painter.resetTransform();
     }
 }
 

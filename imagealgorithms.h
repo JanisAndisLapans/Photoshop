@@ -1,6 +1,8 @@
 #ifndef IMAGEALGORITHMS_H
 #define IMAGEALGORITHMS_H
 
+#include "layer.h"
+
 #include <cmath>
 #include <utility>
 
@@ -78,6 +80,25 @@ namespace ImageAlgorithms
     inline int pointDistance(const QPoint& p1, const QPoint& p2)
     {
         return sqrt(abs(p1.x()-p2.x())*abs(p1.x()-p2.x())+abs(p1.y()-p2.y())*abs(p1.y()-p2.y()));
+    }
+
+    inline QPoint rotatePos(QPoint pos, double rotation, const QPoint& center = QPoint(0,0))
+    {
+        rotation = (rotation / 180.0) * (static_cast<double>(M_PI));
+
+        pos -= center;
+
+        auto x = pos.x() * cos(rotation) + pos.y() * sin(rotation);
+        pos.setY(pos.x() * -sin(rotation) + pos.y() * cos(rotation));
+        pos.setX(x);
+
+
+//        pos.setX((pos.x() - center.x()) * cos(rotation) - (center.y() - pos.y()) * sin(rotation) + center.x());
+//        pos.setY(center.y() - (center.x() - pos.y()) * cos(rotation) + (pos.x() - center.x()) * sin(rotation));
+
+        pos += center;
+
+        return pos;
     }
 }
 

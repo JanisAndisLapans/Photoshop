@@ -26,6 +26,9 @@ public:
     bool isSelected() const;
     void setSelected(bool state);
     QWidget* getTransformToolMenu();
+    qreal getRotationDegrees() const;
+    void setRotationDegress(qreal degrees);
+    void setResizingState(bool state);
 
 private:
     QImage  *img;
@@ -33,6 +36,8 @@ private:
     int rank;
     bool transforming = false;
     bool selected = false;
+    qreal rotationDegrees = 0;
+    bool isResizing = false;
 
 };
 

@@ -103,7 +103,6 @@ void LayerFrame::mouseReleaseEvent(QMouseEvent *event)
 
 void LayerFrame::keyPressEvent(QKeyEvent* event)
 {
-    qDebug() <<"ok";
     if(event->key() == Qt::Key_Control)
     {
         isMultiSelect = true;

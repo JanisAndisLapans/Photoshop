@@ -28,7 +28,8 @@ bool BrushShape::isColorSrc() const
 void BrushShape::resize(int newSize)
 {
     size = newSize;
-    img = img.scaled(size,size);
+    if(!isColor) img = img.scaled(size,size);
+    else initialize(sourceColor);
 }
 
 void BrushShape::changeSource(QColor color)

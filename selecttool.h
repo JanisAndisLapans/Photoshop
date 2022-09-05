@@ -37,8 +37,8 @@ private:
     void onTurnAltCursor();
     void onTurnPrimaryCursor();
     void adjustCursor();
-    void makeSelectionAt(const QPoint& from, const QImage& img, const QPoint& realPos);
-    void makeDeselectionAt(const QPoint& from, const QImage& img, const QPoint& realPos);
+    void makeSelectionAt(const QPoint& from, const QImage& img, const QPoint& realPos, const QPoint& rotationCenter, qreal roation);
+    void makeDeselectionAt(const QPoint& from, const QImage& img, const QPoint& realPos, const QPoint& rotationCenter, qreal roation);
 
     bool mouseDown = false;
     QPoint startMouse;

@@ -7,5 +7,7 @@
         <file>resources/selection.png</file>
         <file>resources/stamp.png</file>
         <file>resources/pointer.png</file>
+        <file>resources/rotate-left.png</file>
+        <file>resources/rotate-right.png</file>
     </qresource>
 </RCC>

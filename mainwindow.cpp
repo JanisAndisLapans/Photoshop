@@ -8,6 +8,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    ui->editFrame->installEventFilter(this);
+
     auto pointer = new PointerTool(ui->editFrame);
     tools["pointer"] = pointer;
     auto move = new MoveTool(ui->editFrame, ui->editFrame->getLayersRef());
@@ -93,6 +95,15 @@ void MainWindow::on_stampPushButton_clicked()
 void MainWindow::on_pushButton_2_clicked()
 {
     ui->editFrame->enableTool(tools["pointer"]);
+}
+
+bool MainWindow::eventFilter(QObject* obj, QEvent* event)
+{
+    if(QKeyEvent* kev = dynamic_cast<QKeyEvent*>(event))
+    {
+        keyPressEvent(kev);
+    }
+    return QObject::eventFilter(obj, event);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* ev)

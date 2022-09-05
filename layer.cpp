@@ -69,3 +69,18 @@ void Layer::setSelected(bool state)
 {
     selected = state;
 }
+
+qreal Layer::getRotationDegrees() const
+{
+    if(isResizing) return 0;
+    else return rotationDegrees;
+}
+
+void Layer::setRotationDegress(qreal degrees)
+{
+    rotationDegrees = degrees;
+}
+void Layer::setResizingState(bool state)
+{
+    isResizing = true;
+}

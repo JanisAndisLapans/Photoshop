@@ -3,6 +3,7 @@
 
 #include "edittool.h"
 #include "movetoolmenu.h"
+#include "ImageAlgorithms.h"
 
 #include <QEvent>
 #include <QMouseEvent>
@@ -22,7 +23,7 @@ private:
     void onDownMouse(QMouseEvent *event);
     void onMoveMouse(QMouseEvent *event);
     void onLeaveMouse(QHoverEvent *event);
-    bool mouseDown = false;
+    bool dragging = false;
     QPoint startMouse;
     Layer* currMoving = nullptr;
     QVector<Layer*>* layers;

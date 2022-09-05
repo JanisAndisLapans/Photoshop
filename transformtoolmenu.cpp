@@ -8,6 +8,8 @@ TransformToolMenu::TransformToolMenu(QWidget *parent) :
     ui->setupUi(this);
     connect(ui->endTransformPushButton, SIGNAL(clicked()), this, SLOT(onEndTransformButtonPress()));
     connect(ui->cancelPushButton, SIGNAL(clicked()), this, SLOT(onCancelTransformButtonPress()));
+    connect(ui->rotationSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onRotationChanged(double)));
+
 }
 
 TransformToolMenu::~TransformToolMenu()
@@ -23,4 +25,16 @@ void TransformToolMenu::onCancelTransformButtonPress()
 void TransformToolMenu::onEndTransformButtonPress()
 {
     emit finishTransform();
+}
+
+void TransformToolMenu::setRotation(double degrees)
+{
+    ui->rotationSpinBox->blockSignals(true);
+    ui->rotationSpinBox->setValue(fmod(degrees,360.0));
+    ui->rotationSpinBox->blockSignals(false);
+}
+
+void TransformToolMenu::onRotationChanged(double degrees)
+{
+    emit rotated(degrees);
 }

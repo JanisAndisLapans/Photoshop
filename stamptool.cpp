@@ -54,16 +54,12 @@ bool StampTool::draw(Layer& l, const QPoint& currPos)
 {
     const auto& brushImg = brushShape->getImg();
     auto brushRectOnDisplay = brushImg.rect();
-    auto resizedRect = l;
-    resizedRect.setSize(resizedRect.size()*editFrame->getZoom());
-    brushRectOnDisplay.translate(currPos);
-    if(!brushRectOnDisplay.intersects(resizedRect)) return false;
+    auto realPos = ImageAlgorithms::rotatePos(currPos / editFrame->getZoom(), l.getRotationDegrees(), l.center());
+    brushRectOnDisplay.translate(realPos);
+    if(!brushRectOnDisplay.intersects(l)) return false;
     auto canvasImgRef = l.getImgRef();
-    auto translateAmount = -l.getPos();
-    auto preciseXTranslate = static_cast<int>(static_cast<double>(currPos.x())/editFrame->getZoom()),
-         preciseYTranslate = static_cast<int>(static_cast<double>(currPos.y())/editFrame->getZoom());
-    translateAmount += QPoint(preciseXTranslate, preciseYTranslate);
-    drawPixels(translateAmount, currPos/editFrame->getZoom(), canvasImgRef, brushImg);
+    auto translateAmount =  realPos - l.getPos() / editFrame->getZoom();
+    drawPixels(translateAmount, realPos, canvasImgRef, brushImg);
     return true;
 }
 
@@ -72,18 +68,21 @@ void StampTool::sampleAnew(const QPoint& point)
     auto wholeAreaSize = editFrame->getSelectedAreaRef()->getSize();
     srcArea = QImage(wholeAreaSize,wholeAreaSize,QImage::Format_ARGB32);
     QPainter painter(&srcArea);
+    QPoint posRotated = point;
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto l = *riter;
-        if(l->contains(point))
+        if(l->contains(ImageAlgorithms::rotatePos(point, l->getRotationDegrees(), l->center())))
         {
             painter.drawImage(l->getPos(), l->getImg());
+            posRotated = ImageAlgorithms::rotatePos(point, l->getRotationDegrees(), l->center());
+            cursorRotation = l->getRotationDegrees();
             break;
         }
     }
 
     auto size = QSize(brushShape->getSize(),brushShape->getSize());
-    brushShape->changeSource(srcArea.copy(QRect(point, size)));
+    brushShape->changeSource(srcArea.copy(QRect(posRotated, size)));
     adjustCursor();
 }
 
@@ -226,14 +225,21 @@ void StampTool::adjustCursor()
 {
     auto zoom = editFrame->getZoom();
     int zoomedSize = brushShape->getSize()*zoom;
-    auto img = brushShape->getImg().scaled(zoomedSize, zoomedSize, Qt::KeepAspectRatio);
+    auto img = QImage(zoomedSize, zoomedSize, QImage::Format_ARGB32);
+    img.fill(Qt::transparent);
+    QPainter painter(&img);
+    painter.translate(QPoint(zoomedSize/2, zoomedSize/2));
+    painter.rotate(cursorRotation);
+    painter.translate(-QPoint(zoomedSize/2, zoomedSize/2));
+    painter.drawImage(0, 0, brushShape->getImg().scaled(zoomedSize, zoomedSize, Qt::KeepAspectRatio));
+    painter.end();
     cloneCursor = QCursor(QPixmap::fromImage(move(img)), 0, 0);
     img = QImage(zoomedSize,zoomedSize,QImage::Format_ARGB32);
     img.fill(Qt::transparent);
-    QPainter painter(&img);
-    painter.setPen(Qt::black);
-    painter.drawLine(0, zoomedSize/2, zoomedSize - 0, zoomedSize/2);
-    painter.drawLine(zoomedSize/2, 0, zoomedSize/2, zoomedSize);
+    QPainter painter2(&img);
+    painter2.setPen(Qt::black);
+    painter2.drawLine(0, zoomedSize/2, zoomedSize - 0, zoomedSize/2);
+    painter2.drawLine(zoomedSize/2, 0, zoomedSize/2, zoomedSize);
     sampleCursor = QCursor(QPixmap::fromImage(move(img)), 0, 0);
 
     if(isClone)

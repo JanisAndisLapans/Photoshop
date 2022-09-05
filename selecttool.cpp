@@ -21,13 +21,13 @@ void SelectTool::onDownMouse(QMouseEvent *eventPress)
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto l = *riter;
-        if(l->contains(currPos))
+        if(l->contains(ImageAlgorithms::rotatePos(currPos, l->getRotationDegrees(), l->center() /2*(editFrame->getZoom() + 1.0))))
         {
-            if(!isAdd){
-                makeDeselectionAt(currPos/editFrame->getZoom(), l->getImg(), l->getPos());
-            }else{
-                makeSelectionAt(currPos/editFrame->getZoom(), l->getImg(), l->getPos());
-            }break;
+            if(!isAdd)
+                makeDeselectionAt(ImageAlgorithms::rotatePos(currPos/editFrame->getZoom(), l->getRotationDegrees(), l->center()), l->getImg(), l->getPos(), l->center(), l->getRotationDegrees());
+            else
+                makeSelectionAt(ImageAlgorithms::rotatePos(currPos/editFrame->getZoom(), l->getRotationDegrees(), l->center()), l->getImg(), l->getPos(), l->center(), l->getRotationDegrees());
+            break;
         }
     }
 }
@@ -45,12 +45,12 @@ void SelectTool::onMoveMouse(QMouseEvent *eventMove)
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto l = *riter;
-        if(l->contains(currPos))
+        if(l->contains(ImageAlgorithms::rotatePos(currPos, l->getRotationDegrees(), l->center() /2*(editFrame->getZoom() + 1.0))))
         {
             if(!isAdd)
-                makeDeselectionAt(currPos/editFrame->getZoom(), l->getImg(), l->getPos());
+                makeDeselectionAt(ImageAlgorithms::rotatePos(currPos/editFrame->getZoom(), l->getRotationDegrees(), l->center()), l->getImg(), l->getPos(), l->center(), l->getRotationDegrees());
             else
-                makeSelectionAt(currPos/editFrame->getZoom(), l->getImg(), l->getPos());
+                makeSelectionAt(ImageAlgorithms::rotatePos(currPos/editFrame->getZoom(), l->getRotationDegrees(), l->center()), l->getImg(), l->getPos(), l->center(), l->getRotationDegrees());
             break;
         }
     }
@@ -100,6 +100,12 @@ bool SelectTool::eventFilter(QObject *obj, QEvent *event)
                 dragResizing = true;
                 editFrame->setCursor(Qt::BlankCursor);
             }
+            else
+            {
+                dragResizing = false;
+                if(!isAdd) onTurnPrimaryCursor();
+                isAdd = true;
+            }
             break;
         case QEvent::KeyRelease:
             if(static_cast<QKeyEvent*>(event)->key()==Qt::Key_Alt)
@@ -112,13 +118,20 @@ bool SelectTool::eventFilter(QObject *obj, QEvent *event)
                 dragResizing = false;
                 adjustCursor();
             }
+            else
+            {
+                dragResizing = false;
+                if(!isAdd) onTurnPrimaryCursor();
+                isAdd = true;
+            }
             break;
     }
     return QObject::eventFilter(obj, event);
 }
 
-void SelectTool::makeSelectionAt(const QPoint& from, const QImage& img, const QPoint& realPos)
+void SelectTool::makeSelectionAt(const QPoint& from, const QImage& img, const QPoint& realPos, const QPoint& rotationCenter, qreal rotation)
 {
+    rotation *= -1;
     auto pixels = reinterpret_cast<const QRgb*>(img.constBits());
     auto selectedAreaGrid = selectedArea->getSelectedArea();
     auto x = from.x()-realPos.x(), y = from.y()-realPos.y();
@@ -135,11 +148,12 @@ void SelectTool::makeSelectionAt(const QPoint& from, const QImage& img, const QP
     auto memo = new bool[img.width()*img.height()];
     memset(memo, false, img.width()*img.height());
     auto area = 0;
-    if(selectedAreaGrid[from.x() + from.y()*selectedArea->getSize()] != 1)
+    auto real = ImageAlgorithms::rotatePos(from, rotation, rotationCenter);
+    if(selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()] != 1)
     {
         area++;
     }
-    selectedAreaGrid[from.x() + from.y()*selectedArea->getSize()] = 1;
+    selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()] = 1;
     memo[x+y*img.width()] = true;
     const auto startPos = QPoint(x,y);
     while(!stack.empty())
@@ -148,15 +162,17 @@ void SelectTool::makeSelectionAt(const QPoint& from, const QImage& img, const QP
         auto curr = stack.pop();
         const auto x = get<0>(curr), y = get<1>(curr);
         auto prevColor = get<2>(curr);
+        auto realPrev = ImageAlgorithms::rotatePos(QPoint(get<3>(curr), get<4>(curr)) + realPos, rotation, rotationCenter);
+        auto real = ImageAlgorithms::rotatePos(QPoint(x, y) + realPos, rotation, rotationCenter);
         if(sqrt(abs(x-startPos.x())*abs(x-startPos.x()) + abs(y-startPos.y())*abs(y-startPos.y()))>maxDist ||
                 x>=img.width() ||
                 y>=img.height() ||
                 x<0 || y<0)
         {
-            if(selectedAreaGrid[x+realPos.x() + (y+realPos.y())*selectedArea->getSize()]==0)
+            if(selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()]==0)
             {
-                if(selectedAreaGrid[get<3>(curr)+realPos.x() + (get<4>(curr)+realPos.y())*selectedArea->getSize()] == 1) area--;
-                selectedAreaGrid[get<3>(curr)+realPos.x() + (get<4>(curr)+realPos.y())*selectedArea->getSize()] = 2;
+                if(selectedAreaGrid[realPrev.x() + realPrev.y()*selectedArea->getSize()] == 1) area--;
+                selectedAreaGrid[realPrev.x() + realPrev.y()*selectedArea->getSize()] = 2;
             }
             continue;
         }
@@ -165,30 +181,31 @@ void SelectTool::makeSelectionAt(const QPoint& from, const QImage& img, const QP
         auto diff = ImageAlgorithms::colorDifference(currColor, prevColor);
         if(diff < menu->getStopAdd() || sqrt(abs(x-startPos.x())*abs(x-startPos.x()) + abs(y-startPos.y())*abs(y-startPos.y())) < brushSize/2)
         {
-            if(selectedAreaGrid[x + realPos.x() + (y+realPos.y())*selectedArea->getSize()] != 1)
+            if(selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()] != 1)
             {
                 area++;
             }
-            selectedAreaGrid[x + realPos.x() + (y+realPos.y())*selectedArea->getSize()] = 1;
+            selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()] = 1;
             memo[x+y*img.width()] = true;
             stack.push(make_tuple(x-1,y,currColor, x, y));
             stack.push(make_tuple(x+1,y,currColor, x, y));
             stack.push(make_tuple(x,y-1,currColor, x, y));
             stack.push(make_tuple(x,y+1,currColor, x, y));
         }
-        else if(selectedAreaGrid[x+realPos.x() + (y+realPos.y())*selectedArea->getSize()]==0)
+        else if(selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()]==0)
         {
-            if(selectedAreaGrid[get<3>(curr)+realPos.x() + (get<4>(curr)+realPos.y())*selectedArea->getSize()] == 1) area--;
-            selectedAreaGrid[get<3>(curr)+realPos.x() + (get<4>(curr)+realPos.y())*selectedArea->getSize()] = 2;
+            if(selectedAreaGrid[realPrev.x() + realPrev.y()*selectedArea->getSize()] == 1) area--;
+            selectedAreaGrid[realPrev.x() + realPrev.y()*selectedArea->getSize()] = 2;
         }
     }
     delete[] memo;
-    selectedArea->change(QRect(startPos + realPos - QPoint(maxDist, maxDist), QSize(maxDist*2, maxDist*2)), selectedArea->getPixelCount()+area);
+    selectedArea->change(QRect(ImageAlgorithms::rotatePos(startPos + realPos, rotation, rotationCenter) - QPoint(maxDist, maxDist), QSize(maxDist*2, maxDist*2)), selectedArea->getPixelCount()+area);
     editFrame->update();
 }
 
-void SelectTool::makeDeselectionAt(const QPoint& from, const QImage& img, const QPoint& realPos)
+void SelectTool::makeDeselectionAt(const QPoint& from, const QImage& img, const QPoint& realPos, const QPoint& rotationCenter, qreal rotation)
 {
+    rotation *= -1;
     auto pixels = reinterpret_cast<const QRgb*>(img.constBits());
     auto selectedAreaGrid = selectedArea->getSelectedArea();
     auto x = from.x()-realPos.x(), y = from.y()-realPos.y();
@@ -205,26 +222,29 @@ void SelectTool::makeDeselectionAt(const QPoint& from, const QImage& img, const 
     auto memo = new bool[img.width()*img.height()];
     memset(memo, false, img.width()*img.height());
     auto area = 0;
-    if(selectedAreaGrid[from.x() + from.y()*selectedArea->getSize()] == 1)
+    auto real = ImageAlgorithms::rotatePos(from, rotation, rotationCenter);
+    if(selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()] == 1)
     {
         area--;
     }
-    selectedAreaGrid[from.x() + from.y()*selectedArea->getSize()] = 0;
+    selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()] = 0;
     memo[x+y*img.width()] = true;
     const auto startPos = QPoint(x,y);
     while(!stack.empty())
     {
         auto curr = stack.pop();
         const auto x = get<0>(curr), y = get<1>(curr);
+        auto realPrev = ImageAlgorithms::rotatePos(QPoint(get<3>(curr), get<4>(curr)) + realPos, rotation, rotationCenter);
+        auto real = ImageAlgorithms::rotatePos(QPoint(x, y) + realPos, rotation, rotationCenter);
         auto prevColor = get<2>(curr);
         if(sqrt(abs(x-startPos.x())*abs(x-startPos.x()) + abs(y-startPos.y())*abs(y-startPos.y()))>maxDist ||
                 x>=img.width() ||
                 y>=img.height() ||
                 x<0 || y<0)
         {
-            if(selectedAreaGrid[x+realPos.x() + (y+realPos.y())*selectedArea->getSize()]==1)
+            if(selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()]==1)
             {
-                selectedAreaGrid[get<3>(curr)+realPos.x() + (get<4>(curr)+realPos.y())*selectedArea->getSize()] = 2;
+                selectedAreaGrid[realPrev.x() + realPrev.y()*selectedArea->getSize()] = 2;
             }
             continue;
         }
@@ -233,24 +253,24 @@ void SelectTool::makeDeselectionAt(const QPoint& from, const QImage& img, const 
         auto diff = ImageAlgorithms::colorDifference(currColor, prevColor);
         if(diff < menu->getStopSub() || sqrt(abs(x-startPos.x())*abs(x-startPos.x()) + abs(y-startPos.y())*abs(y-startPos.y())) < brushSize/2)
         {
-            if(selectedAreaGrid[x + realPos.x() + (y+realPos.y())*selectedArea->getSize()]==1)
+            if(selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()]==1)
             {
                 area--;
             }
-            selectedAreaGrid[x + realPos.x() + (y+realPos.y())*selectedArea->getSize()] = 0;
+            selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()] = 0;
             memo[x+y*img.width()] = true;
             stack.push(make_tuple(x-1,y,currColor, x, y));
             stack.push(make_tuple(x+1,y,currColor, x, y));
             stack.push(make_tuple(x,y-1,currColor, x, y));
             stack.push(make_tuple(x,y+1,currColor, x, y));
         }
-        else if(selectedAreaGrid[x+realPos.x() + (y+realPos.y())*selectedArea->getSize()]==1)
+        else if(selectedAreaGrid[real.x() + real.y()*selectedArea->getSize()]==1)
         {
-            selectedAreaGrid[get<3>(curr)+realPos.x() + (get<4>(curr)+realPos.y())*selectedArea->getSize()] = 2;
+            selectedAreaGrid[realPrev.x() + realPrev.y()*selectedArea->getSize()] = 2;
         }
     }
     delete[] memo;
-    selectedArea->change(QRect(startPos + realPos - QPoint(maxDist, maxDist), QSize(maxDist*2, maxDist*2)), selectedArea->getPixelCount()+area);
+    selectedArea->change(QRect(ImageAlgorithms::rotatePos(startPos + realPos, rotation, rotationCenter) - QPoint(maxDist, maxDist), QSize(maxDist*2, maxDist*2)), selectedArea->getPixelCount()+area);
     editFrame->update();
 }
 

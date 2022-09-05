@@ -22,6 +22,8 @@ public:
     virtual void setCursor() override;
     void startLayerTransform(const QVector<Layer*>& layers);
     const QRect& getWorkedAreaRect() const;
+    qreal getWorkedAreaRectRotation() const;
+
     void terminateTransform();
 protected:
     virtual bool eventFilter(QObject *obj, QEvent *event) override;
@@ -41,13 +43,13 @@ private:
     void bottomResize(QPoint pos);
 
     void stopTransform();
-
     struct LayerInfo
     {
         Layer* layer;
         Layer original;
 
         QRect resizingBase;
+        qreal prevRotation;
     };
 
     enum TransformType
@@ -65,6 +67,24 @@ private:
     QVector<QRect> oldRects;
     TransformToolMenu *menu;
     TransformType currType;
+    qreal transformingRectRotation;
+
+    QCursor clockwiseRotateCursor = QCursor(QPixmap(":/icons/resources/rotate-right.png").scaled(QSize(32,32), Qt::KeepAspectRatio));
+    QCursor anticlockwiseRotateCursor = QCursor(QPixmap(":/icons/resources/rotate-left.png").scaled(QSize(32,32), Qt::KeepAspectRatio));
+
+    enum RotationDirection
+    {
+        clockwise = 1, anticlockwise = -1
+    };
+
+    enum RotatedAxis
+    {
+        x, y
+    };
+
+    RotationDirection rdir;
+    RotatedAxis rotatedAxis;
+    qreal prevRotation;
 
 private slots:
     void onCancel();
@@ -73,6 +93,8 @@ private slots:
     void onChooseResize();
     void onChooseRotate();
     void onChooseMove();
+
+    void onRotationChanged(double degrees);
 
 signals:
     void endTransform();

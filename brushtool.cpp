@@ -51,16 +51,12 @@ bool BrushTool::draw(Layer& l, const QPoint& currPos)
 {
     auto brushImg = menu->getBrushShape().getImg();
     auto brushRectOnDisplay = brushImg.rect();
-    auto resizedRect = l;
-    resizedRect.setSize(resizedRect.size()*editFrame->getZoom());
-    brushRectOnDisplay.translate(currPos);
-    if(!brushRectOnDisplay.intersects(resizedRect)) return false;
+    auto rotPos = ImageAlgorithms::rotatePos(currPos / editFrame->getZoom(), l.getRotationDegrees(), l.center());
+    brushRectOnDisplay.translate(rotPos);
+    if(!brushRectOnDisplay.intersects(l)) return false;
     auto canvasImgRef = l.getImgRef();
-    auto translateAmount = -l.getPos();
-    auto preciseXTranslate = static_cast<int>(static_cast<double>(currPos.x())/editFrame->getZoom()),
-         preciseYTranslate = static_cast<int>(static_cast<double>(currPos.y())/editFrame->getZoom());
-    translateAmount += QPoint(preciseXTranslate, preciseYTranslate);
-    drawPixels(translateAmount, currPos/editFrame->getZoom(), canvasImgRef, brushImg);
+    auto translateAmount =  rotPos - l.getPos() / editFrame->getZoom();
+    drawPixels(translateAmount, currPos / editFrame->getZoom(), canvasImgRef, brushImg);
     return true;
 }
 
@@ -147,9 +143,9 @@ bool BrushTool::eventFilter(QObject *obj, QEvent *event)
                 dragResizing = true;
                 editFrame->setCursor(Qt::BlankCursor);
             }
+            else dragResizing = false;
             break;
         case QEvent::KeyRelease:
-
             if(static_cast<QKeyEvent*>(event)->key()==Qt::Key_Control && dragResizing)
             {
                 dragResizing = false;
