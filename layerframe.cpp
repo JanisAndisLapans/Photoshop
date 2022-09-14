@@ -107,6 +107,15 @@ void LayerFrame::keyPressEvent(QKeyEvent* event)
     {
         isMultiSelect = true;
     }
+    else if(event->key() == Qt::Key_Delete && !mouseDragging)
+    {
+        layers->erase(remove_if(layers->begin(), layers->end(),
+            [](Layer* l)
+        {
+            return l->isSelected();
+        }), layers->end());
+        update();
+    }
 }
 
 void LayerFrame::keyReleaseEvent(QKeyEvent* event)

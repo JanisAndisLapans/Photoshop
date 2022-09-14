@@ -51,11 +51,12 @@ bool BrushTool::draw(Layer& l, const QPoint& currPos)
 {
     auto brushImg = menu->getBrushShape().getImg();
     auto brushRectOnDisplay = brushImg.rect();
-    auto rotPos = ImageAlgorithms::rotatePos(currPos / editFrame->getZoom(), l.getRotationDegrees(), l.center());
+    auto rotPos = ImageAlgorithms::rotatePos(currPos / editFrame->getZoom(), l.getRotationDegrees(), l.center()*(1.0 + editFrame->getZoom())/2);
     brushRectOnDisplay.translate(rotPos);
     if(!brushRectOnDisplay.intersects(l)) return false;
     auto canvasImgRef = l.getImgRef();
     auto translateAmount =  rotPos - l.getPos() / editFrame->getZoom();
+    translateAmount = QPoint(translateAmount.x() / l.sizePercentageW(), translateAmount.y() / l.sizePercentageH());
     drawPixels(translateAmount, currPos / editFrame->getZoom(), canvasImgRef, brushImg);
     return true;
 }

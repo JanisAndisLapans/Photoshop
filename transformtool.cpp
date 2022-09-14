@@ -9,6 +9,8 @@ TransformTool::TransformTool(EditFrame* editFrame)
     connect(menu, SIGNAL(cancelTransform()), this, SLOT(onCancel()));
     connect(menu, SIGNAL(finishTransform()), this, SLOT(onFinish()));
     connect(menu, SIGNAL(rotated(double)), this, SLOT(onRotationChanged(double)));
+    connect(menu, SIGNAL(dimsChanged(const QSize&)), this, SLOT(onDimsChanged(const QSize&)));
+    connect(menu, SIGNAL(posChanged(const QPoint&)), this, SLOT(onPosChanged(const QPoint&)));
 }
 
 TransformToolMenu* TransformTool::getMenu()
@@ -51,9 +53,12 @@ void TransformTool::startLayerTransform(const QVector<Layer*>& layers)
     transformingRect = QRect(minLeft, minTop,0,0);
     transformingRect.setBottom(maxBot);
     transformingRect.setRight(maxRight);
+    baseTransformingRect = transformingRect;
     originalTransformingRect = transformingRect;
     transformingRectRotation = 0.0;
     menu->setRotation(0.0);
+    menu->setSize(transformingRect.size());
+    menu->setPos(transformingRect.topLeft());
     currType = Resize;
     for(auto& l : layers)
     {
@@ -69,7 +74,7 @@ void TransformTool::onReleaseMouse(QMouseEvent *event)
     {
         transforming = false;
         editFrame->adjustSize();
-        originalTransformingRect = transformingRect;
+        baseTransformingRect = transformingRect;
         for(auto& layer : transformingLayers)
         {
             layer.resizingBase = *layer.layer;
@@ -110,11 +115,18 @@ void TransformTool::onDownMouse(QMouseEvent *event)
                 layer.layer->setTransforming(true);
                 layer.prevRotation = layer.layer->getRotationDegrees();
             }
-            prevRotation = transformingRectRotation;
         }
         else if(currType == Move)
         {
             startMouse = event->pos();
+        }
+        else if(currType == Resize)
+        {
+            baseTransformingRect = transformingRect;
+            for(auto layer : transformingLayers)
+            {
+                layer.resizingBase = *layer.layer;
+            }
         }
     }
 }
@@ -179,6 +191,8 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
             else
             {
                 currResizeMethod(pos);
+                menu->setSize(transformingRect.size());
+                menu->setPos(transformingRect.topLeft());
                 editFrame->lookAt(event->pos());
                 editFrame->adjustSize(true);
                 editFrame->update();
@@ -213,6 +227,7 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
                 newPos.setX(max(newPos.x(),0));
                 newPos.setY(max(newPos.y(),0));
                 transformingRect.translate(newPos - transformingRect.topLeft());
+                menu->setPos(transformingRect.topLeft());
                 editFrame->adjustSize(true);
                 editFrame->update();
             }
@@ -224,26 +239,18 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
                if(abs(pos.x() - transformingRect.left()) < activateTreshhold)
                {
                    editFrame->setCursor(clockwiseRotateCursor);
-                   rdir = clockwise;
-                   rotatedAxis = y;
                }
                else if(abs(pos.x() - transformingRect.right()) < activateTreshhold)
                {
                    editFrame->setCursor(anticlockwiseRotateCursor);
-                   rdir = anticlockwise;
-                   rotatedAxis = y;
                }
                else if(abs(pos.y() - transformingRect.top()) < activateTreshhold)
                {
                    editFrame->setCursor(clockwiseRotateCursor);
-                   rdir = anticlockwise;
-                   rotatedAxis = x;
                }
                else if(abs(pos.y() - transformingRect.bottom()) < activateTreshhold)
                {
                    editFrame->setCursor(anticlockwiseRotateCursor);
-                   rdir = anticlockwise;
-                   rotatedAxis = x;
                }
                else
                {
@@ -255,52 +262,45 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
             }
             else
             {
-                qreal rotationAdded = 0;
-                auto vector = (startMouse - posNoZoom)*rdir;
-                if(rotatedAxis == x)
-                {
-                    rotationAdded = 90.0*(static_cast<qreal>(vector.x())/transformingRect.width());
-                }
-                else if(rotatedAxis == y)
-                {
-                    rotationAdded = 90.0*(static_cast<qreal>(vector.y())/transformingRect.height());
-                }
-                transformingRectRotation = prevRotation + rotationAdded;
-                menu->setRotation(transformingRectRotation);
+                auto amount = ImageAlgorithms::angleBetweenPoints(startMouse, posNoZoom, transformingRect.center());
+                transformingRectRotation += amount;
                 for(auto& layer : transformingLayers)
                 {
-                    layer.layer->setRotationDegress(layer.original.getRotationDegrees() + transformingRectRotation);
+                    layer.layer->setRotationDegress(layer.layer->getRotationDegrees() + amount);
                 }
+                startMouse = posNoZoom;
                 editFrame->update();
+                menu->setRotation(transformingRectRotation);
             }
             break;
     }
 }
 
+
 void TransformTool::topLeftResize(QPoint pos)
 { 
     if(pos.x() < 0  || pos.y() <0)
     {
-        auto shortest = min(originalTransformingRect.top(), originalTransformingRect.left());
-        pos = QPoint(originalTransformingRect.left() - shortest, originalTransformingRect.top() - shortest);
+        auto shortest = min(baseTransformingRect.top(), baseTransformingRect.left());
+        pos = QPoint(baseTransformingRect.left() - shortest, baseTransformingRect.top() - shortest);
     }
-    pos.setX(min(pos.x(), originalTransformingRect.bottomRight().x()));
-    pos.setY(min(pos.y(), originalTransformingRect.bottomRight().y()));
-    const auto max = ImageAlgorithms::pointDistance(originalTransformingRect.topLeft(), originalTransformingRect.bottomRight());   
-    auto current = ImageAlgorithms::pointDistance(pos, originalTransformingRect.bottomRight());
+    pos.setX(min(pos.x(), baseTransformingRect.bottomRight().x()));
+    pos.setY(min(pos.y(), baseTransformingRect.bottomRight().y()));
+    const auto max = ImageAlgorithms::pointDistance(baseTransformingRect.topLeft(), baseTransformingRect.bottomRight());
+    auto current = ImageAlgorithms::pointDistance(pos, baseTransformingRect.bottomRight());
     auto percentage = static_cast<double>(current)/max;
     auto percentageReverse = 1.0 - percentage;
-    transformingRect.setSize(QSize(originalTransformingRect.width()*percentage, originalTransformingRect.height()*percentage));
-    transformingRect.translate(-transformingRect.topLeft() + originalTransformingRect.topLeft() + QPoint(originalTransformingRect.width(), originalTransformingRect.height())*percentageReverse);
+    transformingRect.setSize(QSize(baseTransformingRect.width()*percentage, baseTransformingRect.height()*percentage));
+    transformingRect.translate(-transformingRect.topLeft() + baseTransformingRect.topLeft() + QPoint(baseTransformingRect.width(), baseTransformingRect.height())*percentageReverse);
 
     for(auto layer : transformingLayers)
     {
         auto curr = layer.layer;
         const auto& orig = layer.resizingBase;
-        auto offset = (orig.topLeft() - originalTransformingRect.topLeft())*percentage;
+        auto offset = (orig.topLeft() - baseTransformingRect.topLeft())*percentage;
 
         curr->setSize(QSize(orig.width()*percentage, orig.height()*percentage));
-        curr->setPos(offset + originalTransformingRect.topLeft() + QPoint(originalTransformingRect.width(), originalTransformingRect.height())*percentageReverse);
+        curr->setPos(offset + baseTransformingRect.topLeft() + QPoint(baseTransformingRect.width(), baseTransformingRect.height())*percentageReverse);
     }
 }
 
@@ -308,27 +308,27 @@ void TransformTool::topRightResize(QPoint pos)
 {
     if(pos.y() <0)
     {
-        const auto proportion = static_cast<double>(originalTransformingRect.width())/originalTransformingRect.height();
-        pos = QPoint(originalTransformingRect.right() + originalTransformingRect.top()*proportion, 0);
+        const auto proportion = static_cast<double>(baseTransformingRect.width())/baseTransformingRect.height();
+        pos = QPoint(baseTransformingRect.right() + baseTransformingRect.top()*proportion, 0);
     }
-    pos.setX(max(pos.x(), originalTransformingRect.bottomLeft().x()));
-    pos.setY(min(pos.y(), originalTransformingRect.bottomLeft().y()));
-    const auto max = ImageAlgorithms::pointDistance(originalTransformingRect.topRight(), originalTransformingRect.bottomLeft());
-    auto current = ImageAlgorithms::pointDistance(pos, originalTransformingRect.bottomLeft());
+    pos.setX(max(pos.x(), baseTransformingRect.bottomLeft().x()));
+    pos.setY(min(pos.y(), baseTransformingRect.bottomLeft().y()));
+    const auto max = ImageAlgorithms::pointDistance(baseTransformingRect.topRight(), baseTransformingRect.bottomLeft());
+    auto current = ImageAlgorithms::pointDistance(pos, baseTransformingRect.bottomLeft());
     auto percentage = static_cast<double>(current)/max;
     auto percentageReverse = 1.0 - percentage;
 
-    transformingRect.setSize(QSize(originalTransformingRect.width()*percentage, originalTransformingRect.height()*percentage));
-    transformingRect.translate(-transformingRect.topLeft() + QPoint(transformingRect.x(),originalTransformingRect.top() + originalTransformingRect.height()*percentageReverse));
+    transformingRect.setSize(QSize(baseTransformingRect.width()*percentage, baseTransformingRect.height()*percentage));
+    transformingRect.translate(-transformingRect.topLeft() + QPoint(transformingRect.x(),baseTransformingRect.top() + baseTransformingRect.height()*percentageReverse));
 
     for(auto layer : transformingLayers)
     {
         auto curr = layer.layer;
         const auto& orig = layer.resizingBase;
-        auto offset = (orig.topLeft() - originalTransformingRect.topLeft())*percentage;
+        auto offset = (orig.topLeft() - baseTransformingRect.topLeft())*percentage;
 
         curr->setSize(QSize(orig.width()*percentage, orig.height()*percentage));
-        curr->setPos(offset + QPoint(transformingRect.x(), originalTransformingRect.top() + originalTransformingRect.height()*percentageReverse));
+        curr->setPos(offset + QPoint(transformingRect.x(), baseTransformingRect.top() + baseTransformingRect.height()*percentageReverse));
     }
 }
 
@@ -336,58 +336,58 @@ void TransformTool::bottomLeftResize(QPoint pos)
 {
     if(pos.x() < 0)
     {
-        const auto proportion = static_cast<double>(originalTransformingRect.height())/originalTransformingRect.width();
-        pos = QPoint(0, originalTransformingRect.bottom() + originalTransformingRect.left()*proportion);
+        const auto proportion = static_cast<double>(baseTransformingRect.height())/baseTransformingRect.width();
+        pos = QPoint(0, baseTransformingRect.bottom() + baseTransformingRect.left()*proportion);
     }
-    pos.setX(min(pos.x(), originalTransformingRect.topRight().x()));
-    pos.setY(max(pos.y(), originalTransformingRect.topRight().y()));
-    const auto max = ImageAlgorithms::pointDistance(originalTransformingRect.topRight(), originalTransformingRect.bottomLeft());
-    auto current = ImageAlgorithms::pointDistance(pos, originalTransformingRect.topRight());
+    pos.setX(min(pos.x(), baseTransformingRect.topRight().x()));
+    pos.setY(max(pos.y(), baseTransformingRect.topRight().y()));
+    const auto max = ImageAlgorithms::pointDistance(baseTransformingRect.topRight(), baseTransformingRect.bottomLeft());
+    auto current = ImageAlgorithms::pointDistance(pos, baseTransformingRect.topRight());
     auto percentage = static_cast<double>(current)/max;
     auto percentageReverse = 1.0 - percentage;
 
-    transformingRect.setSize(originalTransformingRect.size()*percentage);
-    transformingRect.translate(-transformingRect.topLeft() + QPoint(originalTransformingRect.left() + originalTransformingRect.width()*percentageReverse,transformingRect.y()));
+    transformingRect.setSize(baseTransformingRect.size()*percentage);
+    transformingRect.translate(-transformingRect.topLeft() + QPoint(baseTransformingRect.left() + baseTransformingRect.width()*percentageReverse,transformingRect.y()));
 
     for(auto layer : transformingLayers)
     {
         auto curr = layer.layer;
         const auto& orig = layer.resizingBase;
-        auto offset = (orig.topLeft() - originalTransformingRect.topLeft())*percentage;
+        auto offset = (orig.topLeft() - baseTransformingRect.topLeft())*percentage;
 
         curr->setSize(orig.size() * percentage);
-        curr->setPos(offset + QPoint(originalTransformingRect.left() + originalTransformingRect.width()*percentageReverse,transformingRect.y()));
+        curr->setPos(offset + QPoint(baseTransformingRect.left() + baseTransformingRect.width()*percentageReverse,transformingRect.y()));
     }
 }
 
 void TransformTool::bottomRightResize(QPoint pos)
 {
-    pos.setX(max(pos.x(), originalTransformingRect.topLeft().x()));
-    pos.setY(max(pos.y(), originalTransformingRect.topLeft().y()));
-    const auto max = ImageAlgorithms::pointDistance(originalTransformingRect.topLeft(), originalTransformingRect.bottomRight());
-    auto current = ImageAlgorithms::pointDistance(pos, originalTransformingRect.topLeft());
+    pos.setX(max(pos.x(), baseTransformingRect.topLeft().x()));
+    pos.setY(max(pos.y(), baseTransformingRect.topLeft().y()));
+    const auto max = ImageAlgorithms::pointDistance(baseTransformingRect.topLeft(), baseTransformingRect.bottomRight());
+    auto current = ImageAlgorithms::pointDistance(pos, baseTransformingRect.topLeft());
     auto percentage = static_cast<double>(current)/max;
 //  auto percentageReverse = 1.0 - percentage;
 
-    transformingRect.setSize(originalTransformingRect.size()*percentage);
+    transformingRect.setSize(baseTransformingRect.size()*percentage);
 
     for(auto layer : transformingLayers)
     {
         auto curr = layer.layer;
         const auto& orig = layer.resizingBase;
-//      auto offset = (orig.topLeft() - originalTransformingRect.topLeft())*percentage;
+//      auto offset = (orig.topLeft() - baseTransformingRect.topLeft())*percentage;
         curr->setSize(orig.size()*percentage);
     }
 }
 
 void TransformTool::leftResize(QPoint pos)
 {
-    pos.setX(min(max(pos.x(), 0), originalTransformingRect.right()));
-    const auto max = originalTransformingRect.right() - originalTransformingRect.left();
-    auto current =  pos.x() - originalTransformingRect.left();
+    pos.setX(min(max(pos.x(), 0), baseTransformingRect.right()));
+    const auto max = baseTransformingRect.right() - baseTransformingRect.left();
+    auto current =  pos.x() - baseTransformingRect.left();
     auto percentage = static_cast<double>(current)/max;
 
-    transformingRect.setLeft(originalTransformingRect.left() + originalTransformingRect.width()*percentage);
+    transformingRect.setLeft(baseTransformingRect.left() + baseTransformingRect.width()*percentage);
 
     for(auto layer : transformingLayers)
     {
@@ -399,12 +399,12 @@ void TransformTool::leftResize(QPoint pos)
 
 void TransformTool::rightResize(QPoint pos)
 {
-    pos.setX(max(pos.x(), originalTransformingRect.left()));
-    const auto max = originalTransformingRect.right() - originalTransformingRect.left();
-    auto current = originalTransformingRect.right() - pos.x();
+    pos.setX(max(pos.x(), baseTransformingRect.left()));
+    const auto max = baseTransformingRect.right() - baseTransformingRect.left();
+    auto current = baseTransformingRect.right() - pos.x();
     auto percentage = 1.0 - static_cast<double>(current)/max;
 
-    transformingRect.setRight(originalTransformingRect.left() + originalTransformingRect.width()*percentage);
+    transformingRect.setRight(baseTransformingRect.left() + baseTransformingRect.width()*percentage);
 
     for(auto layer : transformingLayers)
     {
@@ -415,12 +415,12 @@ void TransformTool::rightResize(QPoint pos)
 }
 void TransformTool::topResize(QPoint pos)
 {
-    pos.setY(max(min(pos.y(), originalTransformingRect.bottom()), 0));
-    const auto max = originalTransformingRect.bottom() - originalTransformingRect.top();
-    auto current = pos.y() - originalTransformingRect.top();
+    pos.setY(max(min(pos.y(), baseTransformingRect.bottom()), 0));
+    const auto max = baseTransformingRect.bottom() - baseTransformingRect.top();
+    auto current = pos.y() - baseTransformingRect.top();
     auto percentage = static_cast<double>(current)/max;
 
-    transformingRect.setTop(originalTransformingRect.top() + originalTransformingRect.height()*percentage);
+    transformingRect.setTop(baseTransformingRect.top() + baseTransformingRect.height()*percentage);
 
     for(auto layer : transformingLayers)
     {
@@ -431,12 +431,12 @@ void TransformTool::topResize(QPoint pos)
 }
 void TransformTool::bottomResize(QPoint pos)
 {
-    pos.setY(max(pos.y(), originalTransformingRect.top()));
-    const auto max = originalTransformingRect.bottom() - originalTransformingRect.top();
-    auto current =  originalTransformingRect.bottom() - pos.y();
+    pos.setY(max(pos.y(), baseTransformingRect.top()));
+    const auto max = baseTransformingRect.bottom() - baseTransformingRect.top();
+    auto current =  baseTransformingRect.bottom() - pos.y();
     auto percentage = 1.0 - static_cast<double>(current)/max;
 
-    transformingRect.setBottom(originalTransformingRect.top() + originalTransformingRect.height()*percentage);
+    transformingRect.setBottom(baseTransformingRect.top() + baseTransformingRect.height()*percentage);
 
     for(auto layer : transformingLayers)
     {
@@ -445,7 +445,6 @@ void TransformTool::bottomResize(QPoint pos)
         curr->setBottom(orig.top() + orig.height()*percentage);
     }
 }
-
 
 const QRect& TransformTool::getWorkedAreaRect() const
 {
@@ -509,3 +508,29 @@ void TransformTool::onRotationChanged(double degrees)
     }
     editFrame->update();
 }
+
+void TransformTool::onDimsChanged(const QSize& newSize)
+{
+    auto percentageW = static_cast<double>(newSize.width())/originalTransformingRect.width(),
+         percentageH = static_cast<double>(newSize.height())/originalTransformingRect.height();
+    transformingRect.setSize(newSize);
+    for(auto& layer : transformingLayers)
+    {
+        layer.layer->setSize(QSize(layer.original.width() * percentageW, layer.original.height() * percentageH));
+    }
+    editFrame->adjustSize();
+    editFrame->update();
+}
+
+void TransformTool::onPosChanged(const QPoint& newPoint)
+{
+    for(auto& layer : transformingLayers)
+    {
+        auto offset = layer.layer->topLeft() - transformingRect.topLeft();
+        layer.layer->setPos(newPoint + offset);
+    }
+    transformingRect.translate(newPoint - transformingRect.topLeft());
+    editFrame->adjustSize();
+    editFrame->update();
+}
+

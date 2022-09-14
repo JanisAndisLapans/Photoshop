@@ -6,14 +6,15 @@ Layer::Layer(const QPoint& pos)
 
 }
 
-Layer::Layer(const QString& path, int rank, const QPoint& pos)
-    :img(new QImage(path)), rank(rank)
+Layer::Layer(const QString& path, const QPoint& pos)
+    :img(new QImage(path))
 {
     *img = img->convertToFormat(QImage::Format_ARGB32);
     setSize(img->size());
     setPos(pos);
     auto fileNameFull = QFile(path).fileName();
     name = fileNameFull.mid(fileNameFull.lastIndexOf("/")+1);
+    origSize = size();
 }
 
 QPoint Layer::getPos() const
@@ -39,16 +40,6 @@ QImage* Layer::getImgRef()
 QImage Layer::getImg() const
 {
     return *img;
-}
-
-int Layer::getRank() const
-{
-    return rank;
-}
-
-void Layer::setRank(int rank)
-{
-    this->rank = rank;
 }
 
 bool Layer::isTransforming() const
@@ -83,4 +74,13 @@ void Layer::setRotationDegress(qreal degrees)
 void Layer::setResizingState(bool state)
 {
     isResizing = true;
+}
+
+double Layer::sizePercentageW() const
+{
+    return static_cast<double>(width())/origSize.width();
+}
+double Layer::sizePercentageH() const
+{
+    return static_cast<double>(height())/origSize.height();
 }

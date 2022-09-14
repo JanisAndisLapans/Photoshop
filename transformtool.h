@@ -7,8 +7,10 @@
 
 #include <functional>
 #include <utility>
-#include <QMenu>
+#include <cmath>
 
+#include <QMenu>
+#include <QTransform>
 
 using namespace std;
 using std::placeholders::_1;
@@ -60,7 +62,7 @@ private:
     function<void(const QPoint&)> currResizeMethod;
     bool transforming = false;
     bool transformingAvailable = false;
-    QRect transformingRect, originalTransformingRect;
+    QRect transformingRect, originalTransformingRect, baseTransformingRect;
     QPoint startMouse;
     QVector<LayerInfo> transformingLayers = QVector<LayerInfo>();
 
@@ -72,20 +74,6 @@ private:
     QCursor clockwiseRotateCursor = QCursor(QPixmap(":/icons/resources/rotate-right.png").scaled(QSize(32,32), Qt::KeepAspectRatio));
     QCursor anticlockwiseRotateCursor = QCursor(QPixmap(":/icons/resources/rotate-left.png").scaled(QSize(32,32), Qt::KeepAspectRatio));
 
-    enum RotationDirection
-    {
-        clockwise = 1, anticlockwise = -1
-    };
-
-    enum RotatedAxis
-    {
-        x, y
-    };
-
-    RotationDirection rdir;
-    RotatedAxis rotatedAxis;
-    qreal prevRotation;
-
 private slots:
     void onCancel();
     void onFinish();
@@ -93,6 +81,9 @@ private slots:
     void onChooseResize();
     void onChooseRotate();
     void onChooseMove();
+
+    void onDimsChanged(const QSize& newSize);
+    void onPosChanged(const QPoint& newPos);
 
     void onRotationChanged(double degrees);
 

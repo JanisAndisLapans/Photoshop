@@ -49,7 +49,7 @@ void EditFrame::addImages(const QVector<QString>& paths)
     QVector<Layer*> transforming;
     for(const auto& path : paths)
     {
-        Layer *l = new Layer(path, layers.size());
+        Layer *l = new Layer(path);
         layers.append(l);
         l->setSelected(true);
         transforming.append(l);
@@ -69,7 +69,7 @@ void EditFrame::addImg(QString path)
     for(auto& l : layers)
         l->setSelected(false);
 
-    auto l = new Layer(path, layers.size());
+    auto l = new Layer(path);
     layers.append(l);
     l->setSelected(true);
     ttool->startLayerTransform({l});

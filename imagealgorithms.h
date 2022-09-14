@@ -40,8 +40,7 @@ namespace ImageAlgorithms
 
     inline QRgb overlay(QRgb src, QRgb dest)
     {
-        uchar A = 255 - (255-qAlpha(dest))*(255-qAlpha(src))/255,
-                R, G, B;
+        uchar R, G, B;
         if(qRed(dest)>127)
             R = (255 - (255-2*(qRed(dest)-127)) * (255-qRed(src)));
         else
@@ -55,8 +54,7 @@ namespace ImageAlgorithms
         else
             B = ((2*qBlue(dest)) * qBlue(src))/255;
 
-
-        return qRgba(R,G,B,A);
+        return sourceOver(qRgba(R,G,B,qAlpha(src)), dest);
     }
 
     inline QRgb multiply(QRgb src, QRgb dest)
@@ -64,8 +62,8 @@ namespace ImageAlgorithms
         uchar R = qRed(src)*qRed(dest)/255;
         uchar G = qGreen(src)*qGreen(dest)/255;
         uchar B = qBlue(src)*qBlue(dest)/255;
-        uchar A = qAlpha(src)*qAlpha(dest)/255;
-        return qRgba(R,G,B,A);
+
+        return sourceOver(qRgba(R,G,B,qAlpha(src)), dest);
     }
 
     inline QRgb screen(QRgb src, QRgb dest)
@@ -73,8 +71,8 @@ namespace ImageAlgorithms
         uchar R = 255 - (255-qRed(dest)) * (255-qRed(src))/255;
         uchar G = 255 - (255-qGreen(dest)) * (255-qGreen(src))/255;
         uchar B = 255 - (255-qBlue(dest)) * (255-qBlue(src))/255;
-        uchar A = 255 - (255-qAlpha(dest)) * (255-qAlpha(src))/255;
-        return qRgba(R,G,B,A);
+
+        return sourceOver(qRgba(R,G,B,qAlpha(src)), dest);
     }
 
     inline int pointDistance(const QPoint& p1, const QPoint& p2)
@@ -82,9 +80,19 @@ namespace ImageAlgorithms
         return sqrt(abs(p1.x()-p2.x())*abs(p1.x()-p2.x())+abs(p1.y()-p2.y())*abs(p1.y()-p2.y()));
     }
 
+    inline qreal degreesToRadians(qreal degs)
+    {
+        return (degs / 180.0) * (static_cast<double>(M_PI));
+    }
+
+    inline qreal radiansToDegrees(qreal rads)
+    {
+        return rads * 180.0 / static_cast<double>(M_PI);
+    }
+
     inline QPoint rotatePos(QPoint pos, double rotation, const QPoint& center = QPoint(0,0))
     {
-        rotation = (rotation / 180.0) * (static_cast<double>(M_PI));
+        rotation = degreesToRadians(rotation);
 
         pos -= center;
 
@@ -92,14 +100,24 @@ namespace ImageAlgorithms
         pos.setY(pos.x() * -sin(rotation) + pos.y() * cos(rotation));
         pos.setX(x);
 
-
-//        pos.setX((pos.x() - center.x()) * cos(rotation) - (center.y() - pos.y()) * sin(rotation) + center.x());
-//        pos.setY(center.y() - (center.x() - pos.y()) * cos(rotation) + (pos.x() - center.x()) * sin(rotation));
-
         pos += center;
 
         return pos;
     }
+
+    inline qreal angleBetweenPoints(const QPoint& p1, const QPoint& p2, const QPoint& origin = QPoint(0,0))
+    {
+//        auto ret =
+//             static_cast<double>(QPoint::dotProduct(p1 - origin, p2 - origin)) /
+//            (ImageAlgorithms::pointDistance(origin, p1) * ImageAlgorithms::pointDistance(origin, p2));
+//        qDebug() <<ret << (-1.0 < ret && ret < 1.0 ? radiansToDegrees(acos(ret)) : radiansToDegrees(acos(round(ret)))) << QPoint::dotProduct(p1 - origin, p2 - origin) << ImageAlgorithms::pointDistance(origin, p1) << ImageAlgorithms::pointDistance(origin, p2);
+//        return -1.0 < ret && ret < 1.0 ? radiansToDegrees(acos(ret)) : radiansToDegrees(acos(round(ret)));
+        auto pcor1 = p1 - origin, pcor2 = p2 - origin;
+        auto det = pcor1.x()*pcor2.y() - pcor1.y()*pcor2.x();
+        auto dot = QPoint::dotProduct(pcor1, pcor2);
+        return radiansToDegrees(atan2(det, dot));
+    }
+
 }
 
 #endif // IMAGEALGORITHMS_H
