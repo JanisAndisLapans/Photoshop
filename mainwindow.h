@@ -10,6 +10,7 @@
 #include "pointertool.h"
 #include "stamptool.h"
 #include "transformtool.h"
+#include "solidcolorlayerdialog.h"
 
 #include <QMainWindow>
 #include <QFileDialog>
@@ -51,6 +52,8 @@ private slots:
     void on_stampPushButton_clicked();
 
     void on_pushButton_2_clicked();
+    void on_actionSolid_color_triggered();
+
 protected:
     virtual void keyPressEvent(QKeyEvent* ev) override;
     virtual bool eventFilter(QObject* obj, QEvent* event) override;

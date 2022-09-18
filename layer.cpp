@@ -17,6 +17,14 @@ Layer::Layer(const QString& path, const QPoint& pos)
     origSize = size();
 }
 
+Layer::Layer(const QImage& img, const QString& name)
+{
+    this->img = new QImage(img);
+    setSize(this->img->size());
+    this->name = name;
+    origSize = size();
+}
+
 QPoint Layer::getPos() const
 {
     return QRect::topLeft();

@@ -44,6 +44,7 @@ public:
     void finishDrawingResizeBall();
     void enableTool(EditTool* tool);
     void setTransformTool(TransformTool* tool);
+    void addSolidLayer(QColor color, QSize size);
 
 protected:
     virtual void mouseMoveEvent(QMouseEvent * ev) override;

@@ -62,7 +62,6 @@ void MainWindow::on_actionOpen_triggered()
 
     ui->editFrame->addImg(fileName);
     ui->layerFrame->update();
-
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -131,11 +130,13 @@ void MainWindow::keyPressEvent(QKeyEvent* ev)
     }
 }
 
-
-
-
-
-
-
-
+void MainWindow::on_actionSolid_color_triggered()
+{
+    SolidColorLayerDialog d(this);
+    d.setModal(true);
+    if(d.exec() == QDialog::Accepted)
+    {
+        ui->editFrame->addSolidLayer(d.getColor(), d.getSize());
+    }
+}
 

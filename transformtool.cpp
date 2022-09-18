@@ -193,8 +193,8 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
                 currResizeMethod(pos);
                 menu->setSize(transformingRect.size());
                 menu->setPos(transformingRect.topLeft());
-                editFrame->lookAt(event->pos());
                 editFrame->adjustSize(true);
+                editFrame->lookAt(event->pos());
                 editFrame->update();
             }
             break;

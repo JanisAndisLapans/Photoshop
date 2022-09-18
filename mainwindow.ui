@@ -303,7 +303,20 @@ QStatusBar{
     <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
    </widget>
+   <widget class="QMenu" name="menuLayers">
+    <property name="title">
+     <string>Layers</string>
+    </property>
+    <widget class="QMenu" name="menuAdd_Layer">
+     <property name="title">
+      <string>Add Layer</string>
+     </property>
+     <addaction name="actionSolid_color"/>
+    </widget>
+    <addaction name="menuAdd_Layer"/>
+   </widget>
    <addaction name="menuFIle"/>
+   <addaction name="menuLayers"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
@@ -319,6 +332,11 @@ QStatusBar{
   <action name="actionSave_as">
    <property name="text">
     <string>Save as</string>
+   </property>
+  </action>
+  <action name="actionSolid_color">
+   <property name="text">
+    <string>Solid color</string>
    </property>
   </action>
  </widget>

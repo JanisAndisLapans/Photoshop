@@ -79,6 +79,30 @@ void EditFrame::addImg(QString path)
     update();
 }
 
+void EditFrame::addSolidLayer(QColor color, QSize size)
+{
+    static auto solidLayerNumber = 1;
+
+    selectedArea.unselectAll();
+    for(const auto& l : layers)
+        if(l->isTransforming()) return;
+    for(auto& l : layers)
+        l->setSelected(false);
+
+    QImage img(size,QImage::Format_ARGB32);
+    img.fill(color);
+
+    auto l = new Layer(img, "Solid layer " + QString::number(solidLayerNumber));
+    solidLayerNumber++;
+    layers.append(l);
+    l->setSelected(true);
+    ttool->startLayerTransform({l});
+    prevTool = currTool;
+    enableTool(ttool);
+    adjustSize();
+    update();
+}
+
 double EditFrame::getZoom() const
 {
     return zoom;
@@ -271,3 +295,5 @@ void EditFrame::keyPressEvent(QKeyEvent* event)
         enableTool(ttool);
     }
 }
+
+

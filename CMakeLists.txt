@@ -51,6 +51,8 @@ set(PROJECT_SOURCES
         transformtool.cpp
         transformtoolmenu.cpp
         transformtoolmenu.ui
+        solidcolorlayerdialog.cpp
+        solidcolorlayerdialog.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
