@@ -9,5 +9,6 @@
         <file>resources/pointer.png</file>
         <file>resources/rotate-left.png</file>
         <file>resources/rotate-right.png</file>
+        <file>resources/text.png</file>
     </qresource>
 </RCC>

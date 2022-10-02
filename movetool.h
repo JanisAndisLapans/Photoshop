@@ -28,6 +28,7 @@ private:
     Layer* currMoving = nullptr;
     QVector<Layer*>* layers;
     MoveToolMenu* menu;
+    bool isMoved;
 };
 
 #endif // MOVETOOL_H

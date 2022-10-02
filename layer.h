@@ -11,9 +11,13 @@ class Layer : public QRect
 {
 
 public:
+    Layer(const Layer& l);
+    Layer(Layer&& l);
+    Layer& operator=(const Layer& l);
+    Layer& operator=(Layer&& l);
     Layer(const QPoint& pos = QPoint(0,0));
     Layer(const QString& path, const QPoint& pos = QPoint(0,0));
-    Layer(const QImage& img, const QString& name);
+    Layer(const QImage& img, const QString& name, const QPoint& pos = QPoint(0,0));
     void setPos(const QPoint& pos);
     QPoint getPos() const;
     QString getName() const;

@@ -42,6 +42,9 @@ bool TransformTool::eventFilter(QObject *obj, QEvent *event)
 
 void TransformTool::startLayerTransform(const QVector<Layer*>& layers)
 {
+    editFrame->saveState();
+    editFrame->blockUndo(true);
+
     int minTop = INT_MAX, minLeft = INT_MAX, maxBot = 0, maxRight = 0;
     for(auto& l : layers)
     {
@@ -60,12 +63,14 @@ void TransformTool::startLayerTransform(const QVector<Layer*>& layers)
     menu->setSize(transformingRect.size());
     menu->setPos(transformingRect.topLeft());
     currType = Resize;
+    changeMade = false;
     for(auto& l : layers)
     {
         l->setTransforming(true);
         LayerInfo linfo{l, *l, *l};
         transformingLayers.append(linfo);
     }
+
 }
 
 void TransformTool::onReleaseMouse(QMouseEvent *event)
@@ -140,6 +145,7 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
             if(!transforming)
             {
                 auto activateTreshhold = 10;
+                if(!transformingRect.contains(pos)) goto pass;
                 if(ImageAlgorithms::pointDistance(pos, transformingRect.topLeft()) < activateTreshhold)
                 {
                     currResizeMethod = bind(&TransformTool::topLeftResize, this, _1);
@@ -182,6 +188,7 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
                 }
                 else
                 {
+                    pass:
                     transformingAvailable = false;
                     editFrame->setCursor(Qt::ArrowCursor);
                     return;
@@ -191,6 +198,7 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
             else
             {
                 currResizeMethod(pos);
+                changeMade = true;
                 menu->setSize(transformingRect.size());
                 menu->setPos(transformingRect.topLeft());
                 editFrame->adjustSize(true);
@@ -214,6 +222,7 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
             }
             else
             {
+                changeMade = true;
                 auto dif = event->pos() - startMouse;
                 startMouse = event->pos();
                 for(auto& layer : transformingLayers)
@@ -262,6 +271,7 @@ void TransformTool::onMoveMouse(QMouseEvent *event)
             }
             else
             {
+                changeMade = true;
                 auto amount = ImageAlgorithms::angleBetweenPoints(startMouse, posNoZoom, transformingRect.center());
                 transformingRectRotation += amount;
                 for(auto& layer : transformingLayers)
@@ -463,15 +473,15 @@ void TransformTool::stopTransform()
 
 void TransformTool::onCancel()
 {
-    for(auto& layer : transformingLayers)
-    {
-        *layer.layer = layer.original;
-    }
+    editFrame->blockUndo(false);
+    editFrame->undo();
     stopTransform();
     emit endTransform();
 }
 void TransformTool::onFinish()
 {
+    editFrame->blockUndo(false);
+    if(!changeMade) editFrame->undo();
     stopTransform();
     emit endTransform();
 }

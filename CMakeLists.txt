@@ -53,6 +53,10 @@ set(PROJECT_SOURCES
         transformtoolmenu.ui
         solidcolorlayerdialog.cpp
         solidcolorlayerdialog.ui
+        colorpickerlabel.cpp
+        textdrawingtool.cpp
+        textdrawingtoolmenu.cpp
+        textdrawingtoolmenu.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

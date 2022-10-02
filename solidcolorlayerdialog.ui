@@ -99,13 +99,12 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="colorLabel">
+       <widget class="ColorPickerLabel" name="colorLabel">
         <property name="styleSheet">
-         <string notr="true">background-color: green;
-border: 4px solid black;
-margin: 3.5px;
+         <string notr="true">ColorPickerLabel{ margin: 3.5px;
 margin-top: 42%;
-margin-bottom: 42%;</string>
+margin-bottom: 42%;
+}</string>
         </property>
         <property name="text">
          <string/>
@@ -140,6 +139,13 @@ margin-bottom: 42%;</string>
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ColorPickerLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">colorpickerlabel.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

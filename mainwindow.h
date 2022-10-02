@@ -11,6 +11,7 @@
 #include "stamptool.h"
 #include "transformtool.h"
 #include "solidcolorlayerdialog.h"
+#include "textdrawingtool.h"
 
 #include <QMainWindow>
 #include <QFileDialog>
@@ -53,6 +54,17 @@ private slots:
 
     void on_pushButton_2_clicked();
     void on_actionSolid_color_triggered();
+
+    void on_textPushButton_clicked();
+
+    void on_actionRedio_triggered();
+
+    void on_actionUndo_triggered();
+
+    void onUndoEnable(bool);
+    void onRedoEnable(bool);
+
+    void on_actionRedo_triggered();
 
 protected:
     virtual void keyPressEvent(QKeyEvent* ev) override;

@@ -20,6 +20,8 @@ void MoveTool::onDownMouse(QMouseEvent *eventPress)
         {
             currMoving = layer;
             dragging = true;
+            editFrame->saveState();
+            isMoved = false;
             break;
         }
     }
@@ -35,11 +37,14 @@ void MoveTool::onMoveMouse(QMouseEvent *eventMove)
         newPos.setY(max(newPos.y(),0));
         currMoving->setPos(newPos);
         editFrame->adjustSize(true);
+        isMoved = true;
         editFrame->update();
 }
 
 void MoveTool::onReleaseMouse(QMouseEvent *releaseEvent)
 {
+    if(!dragging || currMoving == nullptr) return;
+    if(!isMoved) editFrame->undo();
     dragging = false;
     editFrame->adjustSize();
 }

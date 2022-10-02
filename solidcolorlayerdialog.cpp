@@ -7,20 +7,13 @@ SolidColorLayerDialog::SolidColorLayerDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->colorLabel->installEventFilter(this);
+    connect(ui->colorLabel, SIGNAL(colorChanged(const QColor&)), this, SLOT(onColorChanged(const QColor&)));
 }
 
-bool SolidColorLayerDialog::eventFilter(QObject *obj, QEvent *ev)
+
+void SolidColorLayerDialog::onColorChanged(const QColor& color)
 {
-    if ((ev->type() == QEvent::MouseButtonPress
-            || ev->type() == QEvent::MouseButtonRelease
-            || ev->type() == QEvent::MouseButtonDblClick)
-            && obj->isWidgetType() && obj==ui->colorLabel)
-    {
-        pickedColor = QColorDialog::getColor(pickedColor, this);
-        auto css = "QLabel { background-color :" + pickedColor.name() + "}";
-        ui->colorLabel->setStyleSheet(css);
-    }
-    return false;
+    pickedColor = color;
 }
 
 QSize SolidColorLayerDialog::getSize() const

@@ -22,6 +22,8 @@ MainWindow::MainWindow(QWidget *parent)
     tools["zoom"] = zoom;
     auto stamp = new StampTool(ui->editFrame, ui->editFrame->getLayersRef());
     tools["stamp"] = stamp;
+    auto text = new TextDrawingTool(ui->editFrame, ui->editFrame->getLayersRef());
+    tools["text"] = text;
     auto transform = new TransformTool(ui->editFrame);
     tools["transfrom"] = transform;
     ui->editFrame->setTransformTool(transform);
@@ -36,6 +38,8 @@ MainWindow::MainWindow(QWidget *parent)
     move->getMenu()->setVisible(false);
     ui->OptionLayout->layout()->addWidget(stamp->getMenu());
     stamp->getMenu()->setVisible(false);
+    ui->OptionLayout->layout()->addWidget(text->getMenu());
+    text->getMenu()->setVisible(false);
     ui->OptionLayout->layout()->addWidget(transform->getMenu());
     transform->getMenu()->setVisible(false);
 
@@ -48,6 +52,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->editFrame->setScrollArea(ui->scrollArea);
 
+    connect(ui->editFrame, SIGNAL(enableUndo(bool)), this, SLOT(onUndoEnable(bool)));
+    connect(ui->editFrame, SIGNAL(enableRedo(bool)), this, SLOT(onRedoEnable(bool)));
 }
 
 MainWindow::~MainWindow()
@@ -96,10 +102,16 @@ void MainWindow::on_pushButton_2_clicked()
     ui->editFrame->enableTool(tools["pointer"]);
 }
 
+void MainWindow::on_textPushButton_clicked()
+{
+    ui->editFrame->enableTool(tools["text"]);
+}
+
 bool MainWindow::eventFilter(QObject* obj, QEvent* event)
 {
-    if(QKeyEvent* kev = dynamic_cast<QKeyEvent*>(event))
+    if(event->type() == QEvent::KeyPress)
     {
+        QKeyEvent* kev = dynamic_cast<QKeyEvent*>(event);
         keyPressEvent(kev);
     }
     return QObject::eventFilter(obj, event);
@@ -107,26 +119,42 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
 
 void MainWindow::keyPressEvent(QKeyEvent* ev)
 {
-    switch(ev->key())
+    if(ev->modifiers() & Qt::ControlModifier)
     {
-        case Qt::Key_Z:
-            ui->editFrame->enableTool(tools["zoom"]);
-            break;
-        case Qt::Key_W:
-            ui->editFrame->enableTool(tools["select"]);
-            break;
-        case Qt::Key_S:
-             ui->editFrame->enableTool(tools["stamp"]);
-            break;
-        case Qt::Key_B:
-            ui->editFrame->enableTool(tools["paint"]);
-            break;
-        case Qt::Key_M:
-            ui->editFrame->enableTool(tools["move"]);
-            break;
-        case Qt::Key_P:
-            ui->editFrame->enableTool(tools["pointer"]);
-            break;
+        if(ev->key() == Qt::Key_Z)
+        {
+            if(ev->modifiers() & Qt::ShiftModifier)
+                ui->editFrame->redo();
+            else
+                ui->editFrame->undo();
+        }
+    }
+    else
+    {
+        switch(ev->key())
+        {
+            case Qt::Key_Z:
+                ui->editFrame->enableTool(tools["zoom"]);
+                break;
+            case Qt::Key_W:
+                ui->editFrame->enableTool(tools["select"]);
+                break;
+            case Qt::Key_S:
+                 ui->editFrame->enableTool(tools["stamp"]);
+                break;
+            case Qt::Key_B:
+                ui->editFrame->enableTool(tools["paint"]);
+                break;
+            case Qt::Key_M:
+                ui->editFrame->enableTool(tools["move"]);
+                break;
+            case Qt::Key_P:
+                ui->editFrame->enableTool(tools["pointer"]);
+                break;
+            case Qt::Key_T:
+                ui->editFrame->enableTool(tools["text"]);
+                break;
+        }
     }
 }
 
@@ -134,9 +162,36 @@ void MainWindow::on_actionSolid_color_triggered()
 {
     SolidColorLayerDialog d(this);
     d.setModal(true);
+    ui->editFrame->saveState();
     if(d.exec() == QDialog::Accepted)
     {
         ui->editFrame->addSolidLayer(d.getColor(), d.getSize());
     }
+}
+
+void MainWindow::on_actionRedio_triggered()
+{
+
+}
+
+void MainWindow::on_actionUndo_triggered()
+{
+    ui->editFrame->undo();
+}
+
+void MainWindow::onUndoEnable(bool val)
+{
+    ui->actionUndo->setEnabled(val);
+}
+
+void MainWindow::onRedoEnable(bool val)
+{
+    ui->actionRedo->setEnabled(val);
+}
+
+
+void MainWindow::on_actionRedo_triggered()
+{
+    ui->editFrame->redo();
 }
 

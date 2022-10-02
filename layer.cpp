@@ -1,5 +1,57 @@
 #include "layer.h"
 
+Layer::Layer(const Layer& l)
+    :QRect(l)
+{
+    name = l.name;
+    transforming = l.transforming;
+    selected = l.selected;
+    rotationDegrees = l.rotationDegrees;
+    isResizing = l.isResizing;
+    origSize = l.origSize;
+    img = new QImage(l.getImg());
+}
+
+Layer::Layer(Layer&& l)
+    :QRect(l)
+{
+    name = l.name;
+    transforming = l.transforming;
+    selected = l.selected;
+    rotationDegrees = l.rotationDegrees;
+    isResizing = l.isResizing;
+    origSize = l.origSize;
+    img = l.img;
+    l.img = nullptr;
+}
+
+Layer& Layer::operator=(Layer&& l)
+{
+    QRect::operator=(l);
+    name = l.name;
+    transforming = l.transforming;
+    selected = l.selected;
+    rotationDegrees = l.rotationDegrees;
+    isResizing = l.isResizing;
+    origSize = l.origSize;
+    img = l.img;
+    l.img = nullptr;
+    return *this;
+}
+
+Layer& Layer::operator=(const Layer& l)
+{
+    QRect::operator=(l);
+    name = l.name;
+    transforming = l.transforming;
+    selected = l.selected;
+    rotationDegrees = l.rotationDegrees;
+    isResizing = l.isResizing;
+    origSize = l.origSize;
+    img = new QImage(l.getImg());
+    return *this;
+}
+
 Layer::Layer(const QPoint& pos)
     :QRect(pos, QSize(0,0))
 {
@@ -17,10 +69,11 @@ Layer::Layer(const QString& path, const QPoint& pos)
     origSize = size();
 }
 
-Layer::Layer(const QImage& img, const QString& name)
+Layer::Layer(const QImage& img, const QString& name, const QPoint& pos)
 {
     this->img = new QImage(img);
     setSize(this->img->size());
+    setPos(pos);
     this->name = name;
     origSize = size();
 }

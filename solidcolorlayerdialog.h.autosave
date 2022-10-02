@@ -21,15 +21,14 @@ public:
     explicit SolidColorLayerDialog(QWidget *parent = nullptr);
     QSize getSize() const;
     QColor getColor() const;
-    ~SolidColorLayerDialog();
+    ~SolidColorLayerDialog();    
 
 private:
     Ui::SolidColorLayerDialog *ui;
     QColor pickedColor = Qt::green;
     QWidget* parent = nullptr;
 
-private slots:
-    void onColorChanged(const QColor& color);
+
 };
 
 #endif // SOLIDCOLORLAYERDIALOG_H

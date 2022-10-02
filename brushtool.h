@@ -43,6 +43,7 @@ private:
     bool dragResizing = false;
     QPoint startMouse;
     bool *drawnArea;
+    bool drawingDone;
 };
 
 #endif // MOVETOOL_H

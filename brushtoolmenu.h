@@ -5,6 +5,7 @@
 #include "brushcircle.h"
 #include "brushsquare.h"
 #include "brushfadedcircle.h"
+#include "colorpickerlabel.h"
 
 #include <QWidget>
 #include <QMouseEvent>
@@ -32,12 +33,12 @@ public:
     void setBrushSize(int newSize);
 
     ~BrushToolMenu();
-protected:
-    virtual bool eventFilter(QObject *obj, QEvent *event) override;
+
 private slots:
     void onSizeChange(int changedVal);
     void onTypeChange(int index);
     void onModeChanged(int index);
+    void onColorChanged(const QColor& color);
 signals :
     void cursorChanged();
 private:

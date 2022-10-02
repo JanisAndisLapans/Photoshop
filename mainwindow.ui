@@ -110,6 +110,25 @@ QStatusBar{
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="textPushButton">
+          <property name="toolTip">
+           <string>Text drawing tool (T)</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	border-image : url(:/icons/resources/text.png) 0 0 0 0 stretch stretch;
+	background: rgb(206, 206, 206);
+	border-radius: 10px;
+	padding:5px;
+}
+</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="brushButton">
           <property name="toolTip">
            <string>Brush (B)</string>
@@ -315,6 +334,15 @@ QStatusBar{
     </widget>
     <addaction name="menuAdd_Layer"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+   </widget>
+   <addaction name="menuEdit"/>
    <addaction name="menuFIle"/>
    <addaction name="menuLayers"/>
   </widget>
@@ -337,6 +365,22 @@ QStatusBar{
   <action name="actionSolid_color">
    <property name="text">
     <string>Solid color</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Redo</string>
    </property>
   </action>
  </widget>

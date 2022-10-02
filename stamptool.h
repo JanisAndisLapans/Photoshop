@@ -53,6 +53,7 @@ private:
     bool *drawnArea;
     bool isClone = true;
     bool dragResizing = false;
+    bool drawingDone;
     qreal cursorRotation = 0.0;
     QCursor cloneCursor, sampleCursor;
 };

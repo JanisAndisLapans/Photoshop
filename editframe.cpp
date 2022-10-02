@@ -79,6 +79,79 @@ void EditFrame::addImg(QString path)
     update();
 }
 
+void EditFrame::addImg(const QImage& img, const QString& name, const QPoint& pos)
+{
+    selectedArea.unselectAll();
+    for(const auto& l : layers)
+        if(l->isTransforming()) return;
+    for(auto& l : layers)
+        l->setSelected(false);
+
+    auto l = new Layer(img, name, pos);
+    layers.append(l);
+    l->setSelected(true);
+    ttool->startLayerTransform({l});
+    prevTool = currTool;
+    enableTool(ttool);
+    adjustSize();
+    update();
+}
+
+void EditFrame::saveState()
+{
+    if(undos.size() == maxSaveStates)
+    {
+        undos.pop_back();
+    }
+    QVector<Layer*> layerscopy;
+    for(const auto&  l : layers)
+    {
+        layerscopy.push_back(new Layer(*l));
+    }
+    undos.push_front(layerscopy);
+    redos.clear();
+    emit enableRedo(false);
+    emit enableUndo(true);
+}
+
+void EditFrame::undo()
+{
+   if(!undos.empty() && !blockedUndo)
+   {
+       if(redos.size() == maxSaveStates) redos.pop_back();
+       QVector<Layer*> layerscopy;
+       for(const auto&  l : layers)
+       {
+           layerscopy.push_back(new Layer(*l));
+       }
+       redos.push_front(layerscopy);
+       emit enableRedo(true);
+       layers = undos.front();
+       undos.pop_front();
+       update();
+       if(undos.empty()) emit enableUndo(false);
+   }
+}
+
+void EditFrame::redo()
+{
+    if(!redos.empty() && !blockedUndo)
+    {
+        if(undos.size() == maxSaveStates) undos.pop_back();
+        QVector<Layer*> layerscopy;
+        for(const auto&  l : layers)
+        {
+            layerscopy.push_back(new Layer(*l));
+        }
+        undos.push_front(layerscopy);
+        emit enableUndo(true);
+        layers = redos.front();
+        redos.pop_front();
+        update();
+        if(redos.empty()) emit enableRedo(false);
+    }
+}
+
 void EditFrame::addSolidLayer(QColor color, QSize size)
 {
     static auto solidLayerNumber = 1;
@@ -263,11 +336,13 @@ void EditFrame::enableTool(EditTool* tool)
     if(currTool!=nullptr)
     {
         currTool->getMenu()->setVisible(false);
+        currTool->end();
         removeEventFilter(currTool);
     }
     currTool = tool;
     currTool->getMenu()->setVisible(true);
     currTool->setCursor();
+    currTool->start();
     installEventFilter(currTool);
 }
 
@@ -296,4 +371,10 @@ void EditFrame::keyPressEvent(QKeyEvent* event)
     }
 }
 
+void EditFrame::blockUndo(bool enable)
+{
+    emit enableRedo(enable);
+    emit enableUndo(enable);
+    blockedUndo = enable;
+}
 

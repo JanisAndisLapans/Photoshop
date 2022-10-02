@@ -15,7 +15,7 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,10,10,3,6,10,4,12,10,0,12">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,8,10,3,6,10,4,12,10,0,12">
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
@@ -27,11 +27,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="colorLabel">
+      <widget class="ColorPickerLabel" name="colorLabel">
        <property name="styleSheet">
-        <string notr="true">background-color: green;
-border: 4px solid black;
-margin: 3.5px;</string>
+        <string notr="true">ColorPickerLabel{
+	margin : 3.5px;
+}</string>
        </property>
        <property name="text">
         <string/>
@@ -161,6 +161,13 @@ margin: 3.5px;</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ColorPickerLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">colorpickerlabel.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

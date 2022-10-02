@@ -74,6 +74,8 @@ private:
     QCursor clockwiseRotateCursor = QCursor(QPixmap(":/icons/resources/rotate-right.png").scaled(QSize(32,32), Qt::KeepAspectRatio));
     QCursor anticlockwiseRotateCursor = QCursor(QPixmap(":/icons/resources/rotate-left.png").scaled(QSize(32,32), Qt::KeepAspectRatio));
 
+    bool changeMade;
+
 private slots:
     void onCancel();
     void onFinish();

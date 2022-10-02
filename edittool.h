@@ -17,6 +17,8 @@ public:
     EditTool(EditFrame *editFrame);
     virtual QWidget* getMenu() = 0;
     virtual void setCursor() = 0;
+    virtual void start(){};
+    virtual void end(){};
 protected:
     EditFrame *editFrame;
     virtual bool eventFilter(QObject *obj, QEvent *event) override = 0;

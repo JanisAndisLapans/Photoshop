@@ -43,6 +43,7 @@ void BrushTool::drawPixels(const QPoint& pos, const QPoint& realPos, QImage* img
             if(newVal != bits[inImgX+inImgY*img->width()])
                 drawnArea[inAreaX + editFrame->getSelectedAreaRef()->getSize()*inAreaY] = true;
             bits[inImgX+inImgY*img->width()] = newVal;
+            drawingDone = true;
         }
     }
 }
@@ -73,10 +74,15 @@ void BrushTool::onDownMouse(QMouseEvent *eventPress)
     drawnArea = new bool[areaSize*areaSize];
     memset(drawnArea, false, areaSize*areaSize);
     auto currPos = eventPress->pos();
+    drawingDone = false;
+    editFrame->saveState();
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& l = *riter;
-        if(draw(*l, currPos)) break;
+        if(draw(*l, currPos))
+        {
+            break;
+        }
     }
     editFrame->update();
 }
@@ -113,7 +119,10 @@ void BrushTool::onReleaseMouse(QMouseEvent *releaseEvent)
             menu->setBrushSize(newSize);
         }
         else
+        {
+            if(!drawingDone) editFrame->undo();
             delete[] drawnArea;
+        }
     }
 }
 

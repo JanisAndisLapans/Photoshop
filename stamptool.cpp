@@ -30,26 +30,26 @@ void StampTool::drawPixels(const QPoint& pos, const QPoint& realPos, QImage* img
             QRgb newVal;
             switch(menu->getMode())
             {
-                case StampToolMenu::Over:
+                case BrushToolMenu::Over:
                     newVal = ImageAlgorithms::sourceOver(brushBits[x + y*brushImg.width()], bits[inImgX+inImgY*img->width()]);
                     break;
-                case StampToolMenu::Multiply:
+                case BrushToolMenu::Multiply:
                     newVal = ImageAlgorithms::multiply(brushBits[x + y*brushImg.width()], bits[inImgX+inImgY*img->width()]);
                     break;
-                case StampToolMenu::Screen:
+                case BrushToolMenu::Screen:
                     newVal = ImageAlgorithms::screen(brushBits[x + y*brushImg.width()], bits[inImgX+inImgY*img->width()]);
                     break;
-                case StampToolMenu::Overlay:
+                case BrushToolMenu::Overlay:
                     newVal = ImageAlgorithms::overlay(brushBits[x + y*brushImg.width()], bits[inImgX+inImgY*img->width()]);
                     break;
             }
             if(newVal != bits[inImgX+inImgY*img->width()])
                 drawnArea[inAreaX + editFrame->getSelectedAreaRef()->getSize()*inAreaY] = true;
             bits[inImgX+inImgY*img->width()] = newVal;
+            drawingDone = true;
         }
     }
 }
-
 bool StampTool::draw(Layer& l, const QPoint& currPos)
 {
     const auto& brushImg = brushShape->getImg();
@@ -67,6 +67,7 @@ void StampTool::sampleAnew(const QPoint& point)
 {
     auto wholeAreaSize = editFrame->getSelectedAreaRef()->getSize();
     srcArea = QImage(wholeAreaSize,wholeAreaSize,QImage::Format_ARGB32);
+    srcArea.fill(Qt::black);
     QPainter painter(&srcArea);
     QPoint posRotated = point;
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
@@ -112,6 +113,8 @@ void StampTool::onDownMouse(QMouseEvent *eventPress)
     auto areaSize = editFrame->getSelectedAreaRef()->getSize();
     drawnArea = new bool[areaSize*areaSize];
     memset(drawnArea, false, areaSize*areaSize);
+    drawingDone = false;
+    editFrame->saveState();
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto l = *riter;
@@ -162,7 +165,10 @@ void StampTool::onReleaseMouse(QMouseEvent *releaseEvent)
             menu->setBrushSize(newSize);
         }
         else if(isClone)
+        {
             delete[] drawnArea;
+            if(!drawingDone) editFrame->undo();
+        }
     }
 }
 

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iterator>
+#include <deque>
 
 #include <QFrame>
 #include <QPainter>
@@ -21,6 +22,7 @@
 #include <QScrollArea>
 #include <QMimeData>
 #include <QFileInfo>
+
 
 using namespace std;
 
@@ -45,6 +47,11 @@ public:
     void enableTool(EditTool* tool);
     void setTransformTool(TransformTool* tool);
     void addSolidLayer(QColor color, QSize size);
+    void addImg(const QImage& img, const QString& name, const QPoint& pos = QPoint(0,0));
+    void saveState();
+    void undo();
+    void redo();
+    void blockUndo(bool);
 
 protected:
     virtual void mouseMoveEvent(QMouseEvent * ev) override;
@@ -54,6 +61,9 @@ protected:
     virtual void keyPressEvent(QKeyEvent* event) override;
 
 private:
+    const int maxSaveStates = 20;
+
+     deque<QVector<Layer*>> undos, redos;
      QVector<Layer*> layers;
      double zoom = 1.0;
      SelectedArea selectedArea;
@@ -64,11 +74,16 @@ private:
      bool drawingResizeBall = false;
      EditTool* currTool = nullptr;
      EditTool* prevTool;
-     TransformTool* ttool;     
+     TransformTool* ttool;
+     bool blockedUndo = false;
 
 private slots:
      void selectionDisplaySwitch();
      void onEndTransform();
+
+signals:
+     void enableUndo(bool);
+     void enableRedo(bool);
 
 };
 

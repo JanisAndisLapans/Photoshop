@@ -11,23 +11,15 @@ BrushToolMenu::BrushToolMenu(QWidget *parent) :
     connect(ui->sizeSpinBox, SIGNAL(valueChanged(int)), this, SLOT(onSizeChange(int)));
     connect(ui->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onTypeChange(int)));
     connect(ui->modeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onModeChanged(int)));
+    connect(ui->colorLabel, SIGNAL(colorChanged(const QColor&)), this, SLOT(onColorChanged(const QColor&)));
     brushShape = new BrushCircle(size, pickedColor);
 }
 
-bool BrushToolMenu::eventFilter(QObject *obj, QEvent *ev)
+void BrushToolMenu::onColorChanged(const QColor& color)
 {
-    if ((ev->type() == QEvent::MouseButtonPress
-            || ev->type() == QEvent::MouseButtonRelease
-            || ev->type() == QEvent::MouseButtonDblClick)
-            && obj->isWidgetType() && obj==ui->colorLabel)
-    {
-        pickedColor = QColorDialog::getColor(pickedColor, this);
-        auto css = "QLabel { background-color :" + pickedColor.name() + "}";
-        ui->colorLabel->setStyleSheet(css);
-        brushShape->changeSource(pickedColor);
-        emit cursorChanged();
-    }
-    return false;
+    pickedColor = color;
+    brushShape->changeSource(pickedColor);
+    emit cursorChanged();
 }
 
 void BrushToolMenu::onSizeChange(int changedVal)
