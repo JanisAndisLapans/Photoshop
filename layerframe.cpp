@@ -30,7 +30,9 @@ void LayerFrame::paintEvent(QPaintEvent * event)
         painter.setPen(Qt::black);
         const auto& layer = *riter;
 
+        painter.setCompositionMode(layer->getCompositionMode());
         painter.drawImage(imageRect, layer->getImg());
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter.drawText(nameRect, Qt::TextWrapAnywhere | Qt::AlignCenter, layer->getName());
         imageRect.translate(shiftVector);
         nameRect.translate(shiftVector);
@@ -70,34 +72,119 @@ void LayerFrame::mousePressEvent(QMouseEvent *event)
 {
     auto index = getIndexOfLayerAtY(event->position().y());
 
-    if(layers->size()>index)
+    if(layers->size()>index && index >= 0)
     {
-        draggedLayerIndex = index;
-        auto wasSelected = (*layers)[index]->isSelected();
-        if(!isMultiSelect)
-            for(auto layer : *layers)
-                layer->setSelected(false);
-        if(!wasSelected) (*layers)[index]->setSelected(true);
-        else (*layers)[index]->setSelected(false);
-        update();
-        mouseDownTimer->start(800);
+        if(event->button() == Qt::LeftButton)
+        {
+            draggedLayerIndex = index;
+            auto wasSelected = (*layers)[index]->isSelected();
+            if(!isMultiSelect)
+                for(auto layer : *layers)
+                    layer->setSelected(false);
+            if(!wasSelected) (*layers)[index]->setSelected(true);
+            else (*layers)[index]->setSelected(false);
+            update();
+            mouseDownTimer->start(800);
+        }
+        else if(event->button() == Qt::RightButton)
+        {
+            auto layer = (*layers)[index];
+            auto currMode = layer->getCompositionMode();
+
+            QMenu contextMenu("Action type", editFrame);
+
+            auto modeMenu = contextMenu.addMenu("Mode");
+
+            QAction overAction("Over", editFrame);
+            if(currMode == QPainter::CompositionMode_SourceOver)
+            {
+                 overAction.setCheckable(true);
+                 overAction.setChecked(true);
+            }
+            else
+            {
+                connect(&overAction, &QAction::triggered, [&]()
+                {
+                    editFrame->saveState();
+                    layer->setCompositionMode(QPainter::CompositionMode_SourceOver);
+                    editFrame->update();
+                });
+            }
+            modeMenu->addAction(&overAction);
+
+            QAction overlayAction("Overlay", editFrame);
+            if(currMode == QPainter::CompositionMode_Overlay)
+            {
+                overlayAction.setCheckable(true);
+                overlayAction.setChecked(true);
+            }
+            else
+            {
+                connect(&overlayAction, &QAction::triggered, [&]()
+                {
+                    editFrame->saveState();
+                    layer->setCompositionMode(QPainter::CompositionMode_Overlay);
+                    editFrame->update();
+                });
+            }
+            modeMenu->addAction(&overlayAction);
+
+            QAction multipyAction("Multiply", editFrame);
+            if(currMode == QPainter::CompositionMode_Multiply)
+            {
+                multipyAction.setCheckable(true);
+                multipyAction.setChecked(true);
+            }
+            else
+            {
+                connect(&multipyAction, &QAction::triggered, [&]()
+                {
+                    editFrame->saveState();
+                    layer->setCompositionMode(QPainter::CompositionMode_Multiply);
+                    editFrame->update();
+                });
+            }
+            modeMenu->addAction(&multipyAction);
+
+            QAction screenAction("Screen", editFrame);
+            if(currMode == QPainter::CompositionMode_Screen)
+            {
+                screenAction.setCheckable(true);
+                screenAction.setChecked(true);
+            }
+            else
+            {
+                connect(&screenAction, &QAction::triggered, [&]()
+                {
+                    editFrame->saveState();
+                    layer->setCompositionMode(QPainter::CompositionMode_Screen);
+                    editFrame->update();
+                });
+            }
+            modeMenu->addAction(&screenAction);
+
+            contextMenu.exec(QCursor::pos());
+        }
     }
 }
 
 void LayerFrame::mouseReleaseEvent(QMouseEvent *event)
 {
-    mouseDownTimer->stop();
-    if(mouseDragging)
+    if(event->button() == Qt::LeftButton)
     {
-        mouseDragging = false;
-        auto curr = getIndexOfLayerAtY(event->position().y());
-        if(layers->size()>curr)
+        mouseDownTimer->stop();
+        if(mouseDragging)
         {
-            layers->swapItemsAt(curr, draggedLayerIndex);
-            editFrame->update();
-            update();
+            mouseDragging = false;
+            auto curr = getIndexOfLayerAtY(event->position().y());
+            if(layers->size()>curr)
+            {
+                layers->swapItemsAt(curr, draggedLayerIndex);
+                editFrame->update();
+                update();
+            }
+            setCursor(Qt::ArrowCursor);
         }
-        setCursor(Qt::ArrowCursor);
     }
 }
 

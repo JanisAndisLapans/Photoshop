@@ -165,7 +165,7 @@ void MainWindow::on_actionSolid_color_triggered()
     ui->editFrame->saveState();
     if(d.exec() == QDialog::Accepted)
     {
-        ui->editFrame->addSolidLayer(d.getColor(), d.getSize());
+        ui->editFrame->addSolidLayer(d.getColor(), d.getSize(), d.getCompositionMode());
     }
 }
 

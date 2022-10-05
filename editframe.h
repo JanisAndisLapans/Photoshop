@@ -46,7 +46,7 @@ public:
     void finishDrawingResizeBall();
     void enableTool(EditTool* tool);
     void setTransformTool(TransformTool* tool);
-    void addSolidLayer(QColor color, QSize size);
+    void addSolidLayer(QColor color, QSize size, QPainter::CompositionMode mode);
     void addImg(const QImage& img, const QString& name, const QPoint& pos = QPoint(0,0));
     void saveState();
     void undo();

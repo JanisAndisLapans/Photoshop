@@ -6,6 +6,7 @@
 #include <QDialog>
 #include <QColorDialog>
 #include <QSize>
+#include <QPainter>
 
 using namespace std;
 
@@ -21,6 +22,8 @@ public:
     explicit SolidColorLayerDialog(QWidget *parent = nullptr);
     QSize getSize() const;
     QColor getColor() const;
+    QPainter::CompositionMode getCompositionMode();
+
     ~SolidColorLayerDialog();
 
 private:

@@ -13,6 +13,8 @@
 #include <QTimer>
 #include <QMouseEvent>
 #include <QImage>
+#include <QAction>
+#include <QMenu>
 
 
 using namespace std;

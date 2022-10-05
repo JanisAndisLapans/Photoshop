@@ -152,7 +152,7 @@ void EditFrame::redo()
     }
 }
 
-void EditFrame::addSolidLayer(QColor color, QSize size)
+void EditFrame::addSolidLayer(QColor color, QSize size, QPainter::CompositionMode mode)
 {
     static auto solidLayerNumber = 1;
 
@@ -166,6 +166,7 @@ void EditFrame::addSolidLayer(QColor color, QSize size)
     img.fill(color);
 
     auto l = new Layer(img, "Solid layer " + QString::number(solidLayerNumber));
+    l->setCompositionMode(mode);
     solidLayerNumber++;
     layers.append(l);
     l->setSelected(true);
@@ -215,7 +216,9 @@ void EditFrame::paintEvent(QPaintEvent *event)
         painter.translate(xc, yc);
         painter.rotate(l->getRotationDegrees());
         resizedLayer.translate(QPoint(-xc, -yc));
+        painter.setCompositionMode(l->getCompositionMode());
         painter.drawImage(resizedLayer,l->getImg());
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
         if(isTransforming && !l->isTransforming())
         {
             painter.fillRect(resizedLayer, notTransformingForeground);

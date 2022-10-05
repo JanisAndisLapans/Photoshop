@@ -6,6 +6,7 @@
 #include <QRect>
 #include <QFile>
 #include <QDebug>
+#include <QPainter>
 
 class Layer : public QRect
 {
@@ -34,6 +35,8 @@ public:
     void setResizingState(bool state);
     double sizePercentageW() const;
     double sizePercentageH() const;
+    void setCompositionMode(QPainter::CompositionMode mode);
+    QPainter::CompositionMode getCompositionMode();
 
 private:
     QImage  *img;
@@ -43,6 +46,7 @@ private:
     qreal rotationDegrees = 0;
     bool isResizing = false;
     QSize origSize;
+    QPainter::CompositionMode mode = QPainter::CompositionMode_SourceOver;
 
 };
 

@@ -16,6 +16,22 @@ void SolidColorLayerDialog::onColorChanged(const QColor& color)
     pickedColor = color;
 }
 
+QPainter::CompositionMode SolidColorLayerDialog::getCompositionMode()
+{
+    switch(ui->modeComboBox->currentIndex())
+    {
+        case 0:
+            return QPainter::CompositionMode_SourceOver;
+        case 1:
+            return QPainter::CompositionMode_Overlay;
+        case 2:
+            return QPainter::CompositionMode_Screen;
+        case 3:
+            return QPainter::CompositionMode_Multiply;
+    }
+    return QPainter::CompositionMode_SourceOver;
+}
+
 QSize SolidColorLayerDialog::getSize() const
 {
     return QSize(ui->spinBoxW->value(), ui->spinBoxH->value());

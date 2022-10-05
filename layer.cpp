@@ -9,6 +9,7 @@ Layer::Layer(const Layer& l)
     rotationDegrees = l.rotationDegrees;
     isResizing = l.isResizing;
     origSize = l.origSize;
+    mode = l.mode;
     img = new QImage(l.getImg());
 }
 
@@ -22,6 +23,7 @@ Layer::Layer(Layer&& l)
     isResizing = l.isResizing;
     origSize = l.origSize;
     img = l.img;
+    mode = l.mode;
     l.img = nullptr;
 }
 
@@ -35,6 +37,7 @@ Layer& Layer::operator=(Layer&& l)
     isResizing = l.isResizing;
     origSize = l.origSize;
     img = l.img;
+    mode = l.mode;
     l.img = nullptr;
     return *this;
 }
@@ -144,4 +147,14 @@ double Layer::sizePercentageW() const
 double Layer::sizePercentageH() const
 {
     return static_cast<double>(height())/origSize.height();
+}
+
+void Layer::setCompositionMode(QPainter::CompositionMode mode)
+{
+    this->mode = mode;
+}
+
+QPainter::CompositionMode Layer::getCompositionMode()
+{
+    return mode;
 }
