@@ -5,6 +5,7 @@
 #include "selectedarea.h"
 #include "edittool.h"
 #include "transformtool.h"
+#include "stamptool.h"
 
 #include <memory>
 #include <cmath>
@@ -52,6 +53,7 @@ public:
     void undo();
     void redo();
     void blockUndo(bool);
+    QImage getResultingImg();
 
 protected:
     virtual void mouseMoveEvent(QMouseEvent * ev) override;

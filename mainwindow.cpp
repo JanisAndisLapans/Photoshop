@@ -128,6 +128,10 @@ void MainWindow::keyPressEvent(QKeyEvent* ev)
             else
                 ui->editFrame->undo();
         }
+        else if(ev->key() == Qt::Key_S)
+        {
+            saveFile();
+        }
     }
     else
     {
@@ -193,5 +197,19 @@ void MainWindow::onRedoEnable(bool val)
 void MainWindow::on_actionRedo_triggered()
 {
     ui->editFrame->redo();
+}
+
+void MainWindow::saveFile()
+{
+    auto fileName = QFileDialog::getSaveFileName(this,
+        tr("Save Image"), QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) , tr("Image Files (*.png *.jpg *.bmp)"));
+
+    auto img = ui->editFrame->getResultingImg();
+    img.save(fileName);
+}
+
+void MainWindow::on_actionSave_triggered()
+{
+    saveFile();
 }
 

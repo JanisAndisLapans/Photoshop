@@ -52,11 +52,12 @@ bool BrushTool::draw(Layer& l, const QPoint& currPos)
 {
     auto brushImg = menu->getBrushShape().getImg();
     auto brushRectOnDisplay = brushImg.rect();
-    auto rotPos = ImageAlgorithms::rotatePos(currPos / editFrame->getZoom(), l.getRotationDegrees(), l.center()*(1.0 + editFrame->getZoom())/2);
-    brushRectOnDisplay.translate(rotPos);
+    auto realPos = ImageAlgorithms::mousePointInLayer(currPos, l, editFrame->getZoom());
+    brushRectOnDisplay.translate(realPos);
     if(!brushRectOnDisplay.intersects(l)) return false;
+    brushImg = brushImg.scaled(brushImg.width()/l.sizePercentageW(),brushImg.height()/l.sizePercentageH(),Qt::IgnoreAspectRatio);
     auto canvasImgRef = l.getImgRef();
-    auto translateAmount =  rotPos - l.getPos() / editFrame->getZoom();
+    auto translateAmount =  realPos - l.getPos()/editFrame->getZoom();
     translateAmount = QPoint(translateAmount.x() / l.sizePercentageW(), translateAmount.y() / l.sizePercentageH());
     drawPixels(translateAmount, currPos / editFrame->getZoom(), canvasImgRef, brushImg);
     return true;
@@ -115,7 +116,7 @@ void BrushTool::onReleaseMouse(QMouseEvent *releaseEvent)
         {
             editFrame->finishDrawingResizeBall();
             auto currPos = releaseEvent->pos();
-            int newSize = sqrt(pow(abs(currPos.x()-startMouse.x()),2) + pow(abs(currPos.y()-startMouse.y()),2))*2;
+            int newSize = sqrt(pow(abs(currPos.x()-startMouse.x()),2) + pow(abs(currPos.y()-startMouse.y()),2))*2 / editFrame->getZoom();
             menu->setBrushSize(newSize);
         }
         else

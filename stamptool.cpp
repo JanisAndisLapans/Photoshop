@@ -8,7 +8,17 @@ StampTool::StampTool(EditFrame *editFrame, QVector<Layer*>* layers)
     menu = new StampToolMenu();
     connect(menu, SIGNAL(cursorChanged()), this, SLOT(onCursorChanged()));
     adjustBrush();
+}
 
+void StampTool::start()
+{
+    adjustBrush();
+    adjustCursor();
+}
+
+void StampTool::end()
+{
+    notClonedYet = true;
 }
 
 void StampTool::drawPixels(const QPoint& pos, const QPoint& realPos, QImage* img, const QImage& brushImg)
@@ -50,17 +60,26 @@ void StampTool::drawPixels(const QPoint& pos, const QPoint& realPos, QImage* img
         }
     }
 }
-bool StampTool::draw(Layer& l, const QPoint& currPos)
+
+bool StampTool::canDraw(Layer& l, const QPoint& currPos)
 {
-    const auto& brushImg = brushShape->getImg();
+    auto brushImg = brushShape->getImg();
     auto brushRectOnDisplay = brushImg.rect();
-    auto realPos = ImageAlgorithms::rotatePos(currPos / editFrame->getZoom(), l.getRotationDegrees(), l.center());
+    auto realPos = ImageAlgorithms::mousePointInLayer(currPos, l, editFrame->getZoom());
     brushRectOnDisplay.translate(realPos);
     if(!brushRectOnDisplay.intersects(l)) return false;
-    auto canvasImgRef = l.getImgRef();
-    auto translateAmount =  realPos - l.getPos() / editFrame->getZoom();
-    drawPixels(translateAmount, realPos, canvasImgRef, brushImg);
     return true;
+}
+
+void StampTool::draw(Layer& l, const QPoint& currPos)
+{
+    auto brushImg = brushShape->getImg();
+    auto realPos = ImageAlgorithms::mousePointInLayer(currPos, l, editFrame->getZoom());
+    brushImg = brushImg.scaled(brushImg.width()/l.sizePercentageW(),brushImg.height()/l.sizePercentageH(),Qt::IgnoreAspectRatio);
+    auto canvasImgRef = l.getImgRef();
+    auto translateAmount =  realPos - l.getPos()/editFrame->getZoom();
+    translateAmount = QPoint(translateAmount.x() / l.sizePercentageW(), translateAmount.y() / l.sizePercentageH());
+    drawPixels(translateAmount, currPos / editFrame->getZoom(), canvasImgRef, brushImg);
 }
 
 void StampTool::sampleAnew(const QPoint& point)
@@ -104,12 +123,17 @@ void StampTool::onDownMouse(QMouseEvent *eventPress)
     }
     if(!isClone)
     {
-        sampleAnew(eventPress->pos()/editFrame->getZoom());
-        samplePos = eventPress->pos()/editFrame->getZoom();
+        sampleStartPos = eventPress->pos()/editFrame->getZoom();
+        sampleAnew(sampleStartPos);
+        notClonedYet = true;
         notSampledYet = false;
         return;
     }
-    if(notSampledYet) return;
+    if(notSampledYet)
+    {
+        mouseDown = false;
+        return;
+    }
     auto areaSize = editFrame->getSelectedAreaRef()->getSize();
     drawnArea = new bool[areaSize*areaSize];
     memset(drawnArea, false, areaSize*areaSize);
@@ -118,12 +142,22 @@ void StampTool::onDownMouse(QMouseEvent *eventPress)
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto l = *riter;
-        if(draw(*l,  eventPress->pos()))
+        auto prevsampleStartPos = sampleStartPos;
+        if(notClonedYet)
         {
-            prevMouse = eventPress->pos();
+            stampStartPos = eventPress->pos();
+        }
+        if(canDraw(*l,  eventPress->pos()))
+        {
+            sampleNowPos = sampleStartPos - (stampStartPos - eventPress->pos());
+            sampleInDraw(sampleNowPos);
+            draw(*l,  eventPress->pos());
+            notClonedYet = false;
             editFrame->update();
             break;
         }
+        else
+            sampleStartPos = prevsampleStartPos;
     }
 }
 
@@ -141,11 +175,11 @@ void StampTool::onMoveMouse(QMouseEvent *eventMove)
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto l = *riter;
-        if(draw(*l, eventMove->pos()))
+        if(canDraw(*l, eventMove->pos()))
         {
-            samplePos += (eventMove->pos() - prevMouse)/editFrame->getZoom();
-            sampleInDraw(samplePos);
-            prevMouse = eventMove->pos();
+            sampleNowPos = sampleStartPos - (stampStartPos - eventMove->pos());
+            sampleInDraw(sampleNowPos);
+            draw(*l, eventMove->pos());
             editFrame->update();
             break;
         }
@@ -161,7 +195,7 @@ void StampTool::onReleaseMouse(QMouseEvent *releaseEvent)
         {
             editFrame->finishDrawingResizeBall();
             auto currPos = releaseEvent->pos();
-            int newSize = sqrt(pow(abs(currPos.x()-startMouse.x()),2) + pow(abs(currPos.y()-startMouse.y()),2))*2;
+            int newSize = sqrt(pow(abs(currPos.x()-startMouse.x()),2) + pow(abs(currPos.y()-startMouse.y()),2))*2 / editFrame->getZoom();;
             menu->setBrushSize(newSize);
         }
         else if(isClone)
@@ -169,6 +203,7 @@ void StampTool::onReleaseMouse(QMouseEvent *releaseEvent)
             delete[] drawnArea;
             if(!drawingDone) editFrame->undo();
         }
+        editFrame->update();
     }
 }
 
@@ -246,7 +281,8 @@ void StampTool::adjustCursor()
     painter2.setPen(Qt::black);
     painter2.drawLine(0, zoomedSize/2, zoomedSize - 0, zoomedSize/2);
     painter2.drawLine(zoomedSize/2, 0, zoomedSize/2, zoomedSize);
-    sampleCursor = QCursor(QPixmap::fromImage(move(img)), 0, 0);
+    samplerImage = move(img);
+    sampleCursor = QCursor(QPixmap::fromImage(samplerImage), 0, 0);
 
     if(isClone)
     {
@@ -258,19 +294,28 @@ void StampTool::adjustCursor()
     }
 }
 
+bool StampTool::isDrawing() const
+{
+    return !notSampledYet && mouseDown;
+}
+
+QImage StampTool::getSamplerImage() const
+{
+    return samplerImage;
+}
+
+QPoint StampTool::getSampleCoords() const
+{
+    return sampleNowPos;
+}
+
 void StampTool::adjustBrush()
 {
-    int  size = menu->getBrushSize();
+    int size = menu->getBrushSize();
     QImage img;
-    if(notSampledYet)
-    {
-        static QImage blank(15, 15, QImage::Format_ARGB32);
-        img = blank;
-    }
-    else
-    {
-        img = brushShape->getImg();
-    }
+    static QImage blank(15, 15, QImage::Format_ARGB32);
+    img = blank;
+    notSampledYet = true;
     switch(menu->getBrushType())
     {
         case StampToolMenu::Circle:

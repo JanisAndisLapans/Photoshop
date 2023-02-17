@@ -118,6 +118,16 @@ namespace ImageAlgorithms
         return radiansToDegrees(atan2(det, dot));
     }
 
+    inline QPoint mousePointInLayer(const QPoint& p, const Layer& l, double zoom)
+    {
+        QRect resized(l);
+        resized.setSize(resized.size()*zoom);
+        auto zoomShift = resized.topLeft()*(zoom-1.0);
+        return rotatePos(p-zoomShift, l.getRotationDegrees(), l.center() / 2 * (zoom + 1.0) - zoomShift) / zoom;
+    }
 }
+
+
+
 
 #endif // IMAGEALGORITHMS_H

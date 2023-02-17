@@ -71,18 +71,15 @@ int LayerFrame::getIndexOfLayerAtY(int y)
 void LayerFrame::mousePressEvent(QMouseEvent *event)
 {
     auto index = getIndexOfLayerAtY(event->position().y());
-
     if(layers->size()>index && index >= 0)
     {
         if(event->button() == Qt::LeftButton)
         {
             draggedLayerIndex = index;
-            auto wasSelected = (*layers)[index]->isSelected();
             if(!isMultiSelect)
                 for(auto layer : *layers)
                     layer->setSelected(false);
-            if(!wasSelected) (*layers)[index]->setSelected(true);
-            else (*layers)[index]->setSelected(false);
+            (*layers)[index]->setSelected(true);
             update();
             mouseDownTimer->start(800);
         }
@@ -165,6 +162,12 @@ void LayerFrame::mousePressEvent(QMouseEvent *event)
 
             contextMenu.exec(QCursor::pos());
         }
+    }
+    else
+    {
+        for(auto layer : *layers)
+            layer->setSelected(false);
+        update();
     }
 }
 

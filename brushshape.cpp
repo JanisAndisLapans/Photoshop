@@ -28,7 +28,7 @@ bool BrushShape::isColorSrc() const
 void BrushShape::resize(int newSize)
 {
     size = newSize;
-    if(!isColor) img = img.scaled(size,size);
+    if(!isColor) img = img.scaled(size,size,Qt::KeepAspectRatio);
     else initialize(sourceColor);
 }
 

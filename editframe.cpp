@@ -20,6 +20,38 @@ void EditFrame::selectionDisplaySwitch()
     }
 }
 
+QImage EditFrame::getResultingImg()
+{
+    QSize imageSize(0,0);
+    for(const auto& l : layers)
+    {
+        auto pos = l->getPos();
+        auto xr = static_cast<int>(pos.x() + l->width());
+        auto yr = static_cast<int>(pos.y() + l->height());
+
+        imageSize.setWidth(max(imageSize.width(), xr));
+        imageSize.setHeight(max(imageSize.height(), yr));
+    }
+    QImage img(imageSize, QImage::Format_ARGB32);
+    img.fill(Qt::white);
+    QPainter painter(&img);
+    for(const auto& l : layers)
+    {
+        auto resizedLayer = *l;
+        resizedLayer.setSize(resizedLayer.size()*zoom);
+        auto xc = resizedLayer.width() * 0.5  + resizedLayer.topLeft().x();
+        auto yc = resizedLayer.height() * 0.5 + resizedLayer.topLeft().y();
+        painter.translate(xc, yc);
+        painter.rotate(l->getRotationDegrees());
+        resizedLayer.translate(QPoint(-xc, -yc));
+        painter.setCompositionMode(l->getCompositionMode());
+        painter.drawImage(resizedLayer,l->getImg());
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter.resetTransform();
+    }
+    return img;
+}
+
 void EditFrame::adjustSize(bool quick)
 {
     auto maxX = -1, maxY = -1;
@@ -211,6 +243,8 @@ void EditFrame::paintEvent(QPaintEvent *event)
     {
         auto resizedLayer = *l;
         resizedLayer.setSize(resizedLayer.size()*zoom);
+        painter.translate(resizedLayer.getPos()*(zoom-1));
+
         auto xc = resizedLayer.width() * 0.5  + resizedLayer.topLeft().x();
         auto yc = resizedLayer.height() * 0.5 + resizedLayer.topLeft().y();
         painter.translate(xc, yc);
@@ -239,6 +273,8 @@ void EditFrame::paintEvent(QPaintEvent *event)
     {
         auto rect =  ttool->getWorkedAreaRect();
         rect.setSize(rect.size()*zoom);
+        painter.translate(rect.topLeft()*(zoom-1));
+
         auto xc = rect.width() * 0.5 + rect.topLeft().x();
         auto yc = rect.height() * 0.5 + rect.topLeft().y();
         painter.translate(xc, yc);
@@ -247,6 +283,13 @@ void EditFrame::paintEvent(QPaintEvent *event)
         painter.setPen(QPen(Qt::blue,2));
         painter.drawRect(rect);
         painter.resetTransform();
+    }
+    else if(auto st = dynamic_cast<StampTool*>(currTool))
+    {
+        if(st->isDrawing())
+        {
+            painter.drawImage(st->getSampleCoords(), st->getSamplerImage());
+        }
     }
 }
 

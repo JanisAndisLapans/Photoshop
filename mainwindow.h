@@ -66,10 +66,14 @@ private slots:
 
     void on_actionRedo_triggered();
 
+    void on_actionSave_triggered();
+
 protected:
     virtual void keyPressEvent(QKeyEvent* ev) override;
     virtual bool eventFilter(QObject* obj, QEvent* event) override;
 private:
+
+    void saveFile();
 
     Ui::MainWindow *ui;
     QColor pickedColor = Qt::green;

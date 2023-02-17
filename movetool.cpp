@@ -14,9 +14,7 @@ void MoveTool::onDownMouse(QMouseEvent *eventPress)
     for(auto riter = layers->rbegin(); riter!=layers->rend(); riter++)
     {
         auto& layer = *riter;
-        auto rect = QRect(*layer);
-        rect.setSize(rect.size() * editFrame->getZoom());
-        if(rect.contains(ImageAlgorithms::rotatePos(eventPress->pos(), layer->getRotationDegrees(), layer->center() / 2 * (editFrame->getZoom() + 1.0))))
+        if(layer->contains(ImageAlgorithms::mousePointInLayer(eventPress->pos(),*layer,editFrame->getZoom()) /*ImageAlgorithms::rotatePos(eventPress->pos(), layer->getRotationDegrees(), layer->center() / 2 * (editFrame->getZoom() + 1.0) - layer->getPos()*(editFrame->getZoom()-1))*/))
         {
             currMoving = layer;
             dragging = true;
@@ -30,7 +28,7 @@ void MoveTool::onDownMouse(QMouseEvent *eventPress)
 void MoveTool::onMoveMouse(QMouseEvent *eventMove)
 {
         if(!dragging || currMoving == nullptr) return;
-        auto dif = eventMove->pos() - startMouse;
+        auto dif = (eventMove->pos() - startMouse)/editFrame->getZoom();
         startMouse = eventMove->pos();
         auto newPos = currMoving->getPos() + dif;
         newPos.setX(max(newPos.x(),0));
